@@ -35,7 +35,6 @@
 # - Do not mix FE / BE / ARCH concerns in one commit
 # - Document invariant preservation for arch/be changes
 # - Log v1 proposals for missing features, don't patch silently
-# - NO Claude Code attribution lines in commit messages
 #
 # --- EXAMPLES ---
 # feat(be): implement L3 CENTER_EDGE deterministic strategy
