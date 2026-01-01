@@ -1,0 +1,22 @@
+{
+  "name": "sampling-wizard-frontend",
+  "version": "0.1.0",
+  "description": "Sampling & Recipe Generation Wizard Frontend (Gemini Implementation)",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Frontend implementation pending - see docs/frontend_component_spec.md'",
+    "build": "echo 'Frontend build pending'",
+    "test": "echo 'Frontend tests pending'"
+  },
+  "dependencies": {
+    "comment": "Dependencies TBD by Gemini team per component spec"
+  },
+  "devDependencies": {
+    "comment": "DevDependencies TBD by Gemini team"
+  },
+  "keywords": ["sampling", "wizard", "wafer", "semiconductor"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yschiang/SAMPLING-WIZARD.git"
+  }
+}

@@ -1,0 +1,5 @@
+# v0 Baseline .gitignore
+backend/.venv/
+backend/__pycache__/
+**/__pycache__/
+.DS_Store
