@@ -1,0 +1,685 @@
+openapi: 3.0.3
+info:
+  title: Sampling Wizard API (Prototype v0)
+  version: "0.1.0"
+  description: |
+    API contract for Sampling & Recipe Generation Wizard.
+    Baseline references:
+    - sampling_architecture_full.md
+    - docs/user_flow.md
+    - docs/frontend_component_spec.md
+    - docs/prototype_scaffold.md
+
+servers:
+  - url: http://localhost:8080
+
+tags:
+  - name: catalog
+    description: Catalog endpoints for Wizard Steps 1–3.
+  - name: sampling
+    description: Execution endpoints for L3 (preview) and L4 (scoring).
+  - name: recipes
+    description: Execution endpoint for L5 (recipe generation).
+
+paths:
+  /v1/catalog/techs:
+    get:
+      tags: [catalog]
+      summary: List available techs
+      operationId: listTechs
+      responses:
+        "200":
+          description: Tech list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TechListResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+  /v1/catalog/wafer-maps:
+    get:
+      tags: [catalog]
+      summary: List wafer maps for a tech
+      operationId: listWaferMaps
+      parameters:
+        - in: query
+          name: tech
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Wafer map summaries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WaferMapListResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+  /v1/catalog/process-options:
+    get:
+      tags: [catalog]
+      summary: List valid process options for a tech
+      operationId: listProcessOptions
+      parameters:
+        - in: query
+          name: tech
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Process options
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessOptionsResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+  /v1/catalog/process-context:
+    get:
+      tags: [catalog]
+      summary: Resolve a ProcessContext (L2) for given selections
+      operationId: getProcessContext
+      parameters:
+        - in: query
+          name: tech
+          required: true
+          schema: { type: string }
+        - in: query
+          name: step
+          required: true
+          schema: { type: string }
+        - in: query
+          name: intent
+          required: true
+          schema: { type: string }
+        - in: query
+          name: mode
+          required: true
+          schema:
+            $ref: "#/components/schemas/Mode"
+      responses:
+        "200":
+          description: Resolved ProcessContext (L2)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessContextResponse"
+        "400":
+          description: Invalid combination (blocking)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+  /v1/catalog/tool-options:
+    get:
+      tags: [catalog]
+      summary: List tool options for a given tech + process
+      operationId: listToolOptions
+      parameters:
+        - in: query
+          name: tech
+          required: true
+          schema: { type: string }
+        - in: query
+          name: step
+          required: true
+          schema: { type: string }
+        - in: query
+          name: intent
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Tool options
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ToolOptionsResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+  /v1/catalog/tool-profile:
+    get:
+      tags: [catalog]
+      summary: Resolve a ToolProfile (L2b)
+      operationId: getToolProfile
+      parameters:
+        - in: query
+          name: toolType
+          required: true
+          schema: { type: string }
+        - in: query
+          name: vendor
+          required: false
+          schema: { type: string }
+        - in: query
+          name: model
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: ToolProfile (L2b)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ToolProfileResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+  /v1/sampling/preview:
+    post:
+      tags: [sampling]
+      summary: Preview sampling (L3) - selection only
+      operationId: previewSampling
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SamplingPreviewRequest"
+      responses:
+        "200":
+          description: SamplingOutput (L3) + non-blocking warnings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SamplingPreviewResponse"
+        "400":
+          description: Validation failure (blocking)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+  /v1/sampling/score:
+    post:
+      tags: [sampling]
+      summary: Score sampling (L4) - evaluation only, no mutation
+      operationId: scoreSampling
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SamplingScoreRequest"
+      responses:
+        "200":
+          description: SamplingScoreReport (L4)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SamplingScoreResponse"
+        "400":
+          description: Validation failure (blocking)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+  /v1/recipes/generate:
+    post:
+      tags: [recipes]
+      summary: Generate tool recipe (L5) from selected points
+      operationId: generateRecipe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateRecipeRequest"
+      responses:
+        "200":
+          description: ToolRecipe (L5) + translation notes/warnings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateRecipeResponse"
+        "400":
+          description: Validation/constraint failure (blocking)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+components:
+  responses:
+    ErrorResponse:
+      description: Error response (blocking)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    Mode:
+      type: string
+      enum: [INLINE, OFFLINE, MONITOR]
+
+    Criticality:
+      type: string
+      enum: [HIGH, MEDIUM, LOW]
+
+    CoordinateSystem:
+      type: string
+      enum: [DIE_GRID, MM, SHOT]
+
+    CoordSystemSupported:
+      type: string
+      enum: [DIE_GRID, MM, SHOT]
+
+    Warning:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message, type]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            type:
+              type: string
+              enum: [VALIDATION_ERROR, NOT_FOUND, CONSTRAINT_ERROR, INTERNAL_ERROR]
+            details:
+              type: object
+              additionalProperties: true
+
+    ValidDieMask:
+      type: object
+      additionalProperties: false
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [EDGE_EXCLUSION, EXPLICIT_LIST]
+        radius_mm:
+          type: number
+        valid_die_list:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiePoint"
+
+    WaferMapSpec:
+      type: object
+      additionalProperties: false
+      required:
+        - wafer_size_mm
+        - die_pitch_x_mm
+        - die_pitch_y_mm
+        - origin
+        - notch_orientation_deg
+        - coordinate_system
+        - valid_die_mask
+        - version
+      properties:
+        wafer_size_mm: { type: number }
+        die_pitch_x_mm: { type: number }
+        die_pitch_y_mm: { type: number }
+        origin:
+          type: string
+          enum: [CENTER]
+        notch_orientation_deg: { type: number }
+        coordinate_system:
+          $ref: "#/components/schemas/CoordinateSystem"
+        valid_die_mask:
+          $ref: "#/components/schemas/ValidDieMask"
+        version: { type: string }
+
+    WaferMapSummary:
+      type: object
+      additionalProperties: false
+      required: [wafer_map_id, tech, description]
+      properties:
+        wafer_map_id: { type: string }
+        tech: { type: string }
+        description: { type: string }
+
+    ProcessContext:
+      type: object
+      additionalProperties: false
+      required:
+        - process_step
+        - measurement_intent
+        - mode
+        - criticality
+        - min_sampling_points
+        - max_sampling_points
+        - allowed_strategy_set
+        - version
+      properties:
+        process_step: { type: string }
+        measurement_intent: { type: string }
+        mode:
+          $ref: "#/components/schemas/Mode"
+        criticality:
+          $ref: "#/components/schemas/Criticality"
+        min_sampling_points:
+          type: integer
+          minimum: 1
+        max_sampling_points:
+          type: integer
+          minimum: 1
+        allowed_strategy_set:
+          type: array
+          items: { type: string }
+        version: { type: string }
+
+    ProcessOption:
+      type: object
+      additionalProperties: false
+      required: [process_step, intents, modes]
+      properties:
+        process_step: { type: string }
+        intents:
+          type: array
+          items: { type: string }
+        modes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Mode"
+
+    RecipeFormat:
+      type: object
+      additionalProperties: false
+      required: [type, version]
+      properties:
+        type:
+          type: string
+          enum: [JSON, CSV, TEXT]
+        version: { type: string }
+
+    ToolProfile:
+      type: object
+      additionalProperties: false
+      required:
+        - tool_type
+        - vendor
+        - coordinate_system_supported
+        - max_points_per_wafer
+        - edge_die_supported
+        - ordering_required
+        - recipe_format
+        - version
+      properties:
+        tool_type: { type: string }
+        vendor: { type: string }
+        model: { type: string }
+        coordinate_system_supported:
+          type: array
+          items:
+            $ref: "#/components/schemas/CoordSystemSupported"
+        max_points_per_wafer:
+          type: integer
+          minimum: 1
+        edge_die_supported: { type: boolean }
+        ordering_required: { type: boolean }
+        recipe_format:
+          $ref: "#/components/schemas/RecipeFormat"
+        forbidden_regions:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        version: { type: string }
+
+    ToolOption:
+      type: object
+      additionalProperties: false
+      required: [tool_type, vendor]
+      properties:
+        tool_type: { type: string }
+        vendor: { type: string }
+        model: { type: string }
+
+    DiePoint:
+      type: object
+      additionalProperties: false
+      required: [die_x, die_y]
+      properties:
+        die_x: { type: integer }
+        die_y: { type: integer }
+
+    SamplingTrace:
+      type: object
+      additionalProperties: false
+      required: [strategy_version, generated_at]
+      properties:
+        strategy_version: { type: string }
+        generated_at:
+          type: string
+          format: date-time
+
+    SamplingOutput:
+      type: object
+      additionalProperties: false
+      required: [sampling_strategy_id, selected_points, trace]
+      properties:
+        sampling_strategy_id: { type: string }
+        selected_points:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiePoint"
+        point_tags:
+          type: array
+          items: { type: string }
+        trace:
+          $ref: "#/components/schemas/SamplingTrace"
+
+    StrategySelection:
+      type: object
+      additionalProperties: false
+      required: [strategy_id]
+      properties:
+        strategy_id: { type: string }
+        params:
+          type: object
+          additionalProperties: true
+
+    SamplingScoreReport:
+      type: object
+      additionalProperties: false
+      required:
+        - coverage_score
+        - statistical_score
+        - risk_alignment_score
+        - overall_score
+        - warnings
+        - version
+      properties:
+        coverage_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        statistical_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        risk_alignment_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        overall_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        warnings:
+          type: array
+          items: { type: string }
+        version: { type: string }
+
+    ToolRecipe:
+      type: object
+      additionalProperties: false
+      required:
+        - recipe_id
+        - tool_type
+        - recipe_payload
+        - translation_notes
+        - recipe_format_version
+      properties:
+        recipe_id: { type: string }
+        tool_type: { type: string }
+        recipe_payload:
+          type: object
+          additionalProperties: true
+        translation_notes:
+          type: array
+          items: { type: string }
+        recipe_format_version: { type: string }
+
+    TechListResponse:
+      type: object
+      additionalProperties: false
+      required: [techs]
+      properties:
+        techs:
+          type: array
+          items: { type: string }
+
+    WaferMapListResponse:
+      type: object
+      additionalProperties: false
+      required: [wafer_maps]
+      properties:
+        wafer_maps:
+          type: array
+          items:
+            $ref: "#/components/schemas/WaferMapSummary"
+
+    ProcessOptionsResponse:
+      type: object
+      additionalProperties: false
+      required: [process_options]
+      properties:
+        process_options:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProcessOption"
+
+    ProcessContextResponse:
+      type: object
+      additionalProperties: false
+      required: [process_context]
+      properties:
+        process_context:
+          $ref: "#/components/schemas/ProcessContext"
+
+    ToolOptionsResponse:
+      type: object
+      additionalProperties: false
+      required: [tool_options]
+      properties:
+        tool_options:
+          type: array
+          items:
+            $ref: "#/components/schemas/ToolOption"
+
+    ToolProfileResponse:
+      type: object
+      additionalProperties: false
+      required: [tool_profile]
+      properties:
+        tool_profile:
+          $ref: "#/components/schemas/ToolProfile"
+
+    SamplingPreviewRequest:
+      type: object
+      additionalProperties: false
+      required: [wafer_map_spec, process_context, tool_profile, strategy]
+      properties:
+        wafer_map_spec:
+          $ref: "#/components/schemas/WaferMapSpec"
+        process_context:
+          $ref: "#/components/schemas/ProcessContext"
+        tool_profile:
+          $ref: "#/components/schemas/ToolProfile"
+        strategy:
+          $ref: "#/components/schemas/StrategySelection"
+
+    SamplingPreviewResponse:
+      type: object
+      additionalProperties: false
+      required: [sampling_output, warnings]
+      properties:
+        sampling_output:
+          $ref: "#/components/schemas/SamplingOutput"
+        warnings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Warning"
+
+    SamplingScoreRequest:
+      type: object
+      additionalProperties: false
+      required: [wafer_map_spec, process_context, tool_profile, sampling_output]
+      properties:
+        wafer_map_spec:
+          $ref: "#/components/schemas/WaferMapSpec"
+        process_context:
+          $ref: "#/components/schemas/ProcessContext"
+        tool_profile:
+          $ref: "#/components/schemas/ToolProfile"
+        sampling_output:
+          $ref: "#/components/schemas/SamplingOutput"
+
+    SamplingScoreResponse:
+      type: object
+      additionalProperties: false
+      required: [score_report]
+      properties:
+        score_report:
+          $ref: "#/components/schemas/SamplingScoreReport"
+
+    GenerateRecipeRequest:
+      type: object
+      additionalProperties: false
+      required: [wafer_map_spec, tool_profile, sampling_output]
+      properties:
+        wafer_map_spec:
+          $ref: "#/components/schemas/WaferMapSpec"
+        tool_profile:
+          $ref: "#/components/schemas/ToolProfile"
+        sampling_output:
+          $ref: "#/components/schemas/SamplingOutput"
+        score_report:
+          $ref: "#/components/schemas/SamplingScoreReport"
+
+    GenerateRecipeResponse:
+      type: object
+      additionalProperties: false
+      required: [tool_recipe, warnings]
+      properties:
+        tool_recipe:
+          $ref: "#/components/schemas/ToolRecipe"
+        warnings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Warning"
