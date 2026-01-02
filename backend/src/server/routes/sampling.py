@@ -6,38 +6,23 @@ from ...models.sampling import (
     SamplingScoreRequest,
     SamplingScoreResponse,
 )
+from ..utils import get_deterministic_timestamp
+from ...engine.l3 import CenterEdgeStrategy
 
 router = APIRouter()
 
 @router.post("/preview", response_model=SamplingPreviewResponse)
 async def preview_sampling(request: SamplingPreviewRequest):
-    # L3 CENTER_EDGE strategy implementation (deterministic placeholder)
-    candidates = [
-        {"die_x": 0, "die_y": 0},   # center
-        {"die_x": 3, "die_y": 0}, {"die_x": -3, "die_y": 0},  # inner ring
-        {"die_x": 0, "die_y": 3}, {"die_x": 0, "die_y": -3},
-        {"die_x": 8, "die_y": 0}, {"die_x": -8, "die_y": 0},  # outer ring
-        {"die_x": 0, "die_y": 8}, {"die_x": 0, "die_y": -8},
-        {"die_x": 6, "die_y": 6}, {"die_x": -6, "die_y": -6}  # corners
-    ]
-
-    # Apply constraints (simplified for v0)
-    max_points = min(
-        request.process_context.max_sampling_points,
-        request.tool_profile.max_points_per_wafer
-    )
-    selected_points = candidates[:max_points]
-
+    # Use real L3 CENTER_EDGE strategy implementation
+    strategy = CenterEdgeStrategy()
+    
+    # Execute L3 sampling point selection
+    sampling_output = strategy.select_points(request)
+    
+    # Return schema-correct response (no contract changes)
     return SamplingPreviewResponse(
-        sampling_output={
-            "sampling_strategy_id": "CENTER_EDGE",
-            "selected_points": selected_points,
-            "trace": {
-                "strategy_version": "1.0",
-                "generated_at": datetime.utcnow().isoformat() + "Z"
-            }
-        },
-        warnings=[]
+        sampling_output=sampling_output,
+        warnings=[]  # Real warnings implementation will be added in PR-2
     )
 
 @router.post("/score", response_model=SamplingScoreResponse)

@@ -1,6 +1,7 @@
 import uuid
 from fastapi import APIRouter
 from ...models.recipes import GenerateRecipeRequest, GenerateRecipeResponse
+from ..utils import get_deterministic_id
 
 router = APIRouter()
 
@@ -41,9 +42,13 @@ async def generate_recipe(request: GenerateRecipeRequest):
         "ordering": "SEQUENTIAL" if tool_profile.ordering_required else "NONE"
     }
 
+    # Generate deterministic recipe ID based on content for testing
+    content_for_id = f"{tool_profile.tool_type}_{len(recipe_points)}_{len(translation_notes)}"
+    recipe_id = get_deterministic_id(content_for_id)
+    
     return GenerateRecipeResponse(
         tool_recipe={
-            "recipe_id": str(uuid.uuid4()),
+            "recipe_id": recipe_id,
             "tool_type": tool_profile.tool_type,
             "recipe_payload": recipe_payload,
             "translation_notes": translation_notes,
