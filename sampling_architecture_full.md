@@ -161,7 +161,51 @@ Translate sampling points into tool-executable recipe payload.
 
 ## 3. Objects & Schemas (v0)
 
-This section defines the canonical objects used across L1–L5.
+This chapter formalizes **object-level responsibilities** and **layer ownership**.
+It clarifies enforcement boundaries for FE/BE.
+
+### Object Responsibility Table
+
+| Layer | Object | Responsibility |
+|---:|---|---|
+| L1 | WaferMapSpec | 幾何定義（座標、die pitch、valid mask） |
+| L1 | ProcessContext | 製程限制、風險、min/max |
+| L2 | ToolProfile | Tool 能力與執行限制 |
+| L2 | SamplingStrategy | 演算法類型（不含結果） |
+| L3 | SamplingOutput | 抽樣結果（唯一 point selector） |
+| L4 | SamplingScoreReport | 評估報告（read-only） |
+| L5 | ToolRecipe | 可執行輸出（tool payload） |
+| X | Warning | 非阻斷回饋 |
+
+### Object Relationship Diagram
+
+```mermaid
+classDiagram
+direction LR
+
+class WaferMapSpec
+class ProcessContext
+class ToolProfile
+class SamplingStrategy
+class SamplingOutput
+class SamplingScoreReport
+class ToolRecipe
+class Warning
+
+SamplingStrategy --> SamplingOutput
+WaferMapSpec --> SamplingOutput
+ProcessContext --> SamplingOutput
+ToolProfile --> SamplingOutput
+
+SamplingOutput --> SamplingScoreReport
+SamplingScoreReport --> Warning
+
+SamplingOutput --> ToolRecipe
+ToolProfile --> ToolRecipe
+ToolRecipe --> Warning
+```
+
+Following sections define the canonical objects used across L1–L5.
 (Authoritative schema definitions are in `api/openapi.yaml` components for v0.)
 
 ### 3.1 L1 WaferMapSpec
