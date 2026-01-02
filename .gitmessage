@@ -1,0 +1,46 @@
+# <type>(<role>): <short milestone-level summary>
+#
+# Context:
+# - Why this change exists (architectural intent or business need)
+#
+# Scope:
+# - What is included / excluded
+# - Specific components affected
+#
+# Invariants:
+# - Which architectural guards are preserved
+# - Which boundaries are maintained (e.g. L4 no-mutation, OpenAPI frozen)
+#
+# Notes:
+# - No OpenAPI changes
+# - No FE contract impact
+# - Other relevant information
+#
+# --- ALLOWED ROLES ---
+# arch   = Architecture, contracts, baselines, invariants
+# be     = Backend implementation (Claude BE agent)  
+# fe     = Frontend implementation (Gemini)
+# audit  = Audit / verification only
+#
+# --- ALLOWED TYPES ---
+# feat     = New capability / milestone
+# fix      = Bug fix (no scope expansion)
+# refactor = Internal restructure (no behavior change)  
+# docs     = Documentation only
+# test     = Tests only (incl. invariant guards)
+# chore    = Tooling, config, CI, repo hygiene
+#
+# --- RULES ---
+# - One PR = One commit = One milestone
+# - Do not mix FE / BE / ARCH concerns in one commit
+# - Document invariant preservation for arch/be changes
+# - Log v1 proposals for missing features, don't patch silently
+# - NO Claude Code attribution lines in commit messages
+#
+# --- EXAMPLES ---
+# feat(be): implement L3 CENTER_EDGE deterministic strategy
+# feat(fe): M4 wizard step navigation and state management  
+# fix(be): L5 coordinate conversion edge case handling
+# docs(arch): add PR architecture invariant checklist
+# test(be): L4 no-mutation guard validation
+# chore(arch): update CI workflow for contract validation
