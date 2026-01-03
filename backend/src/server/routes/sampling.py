@@ -1,11 +1,12 @@
 from datetime import datetime
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from ...models.sampling import (
     SamplingPreviewRequest,
     SamplingPreviewResponse,
     SamplingScoreRequest,
     SamplingScoreResponse,
 )
+from ...models.errors import SamplingError, ErrorResponse
 from ..utils import get_deterministic_timestamp
 from ...engine.l3 import CenterEdgeStrategy
 
@@ -13,17 +14,26 @@ router = APIRouter()
 
 @router.post("/preview", response_model=SamplingPreviewResponse)
 async def preview_sampling(request: SamplingPreviewRequest):
-    # Use real L3 CENTER_EDGE strategy implementation
-    strategy = CenterEdgeStrategy()
-    
-    # Execute L3 sampling point selection
-    sampling_output = strategy.select_points(request)
-    
-    # Return schema-correct response (no contract changes)
-    return SamplingPreviewResponse(
-        sampling_output=sampling_output,
-        warnings=[]  # Real warnings implementation will be added in PR-2
-    )
+    try:
+        # Use real L3 CENTER_EDGE strategy implementation
+        strategy = CenterEdgeStrategy()
+        
+        # Execute L3 sampling point selection with error handling
+        sampling_output = strategy.select_points(request)
+        
+        # Return schema-correct response (no contract changes)
+        return SamplingPreviewResponse(
+            sampling_output=sampling_output,
+            warnings=[]  # Warnings will be added for non-blocking issues
+        )
+        
+    except SamplingError as e:
+        # Convert to HTTP error with proper status code and error format
+        error_response = e.to_error_response()
+        raise HTTPException(
+            status_code=e.status_code,
+            detail=error_response.dict()
+        )
 
 @router.post("/score", response_model=SamplingScoreResponse)
 async def score_sampling(request: SamplingScoreRequest):

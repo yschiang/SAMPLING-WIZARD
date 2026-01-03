@@ -9,6 +9,7 @@ from typing import List, Set, Tuple
 from .base import SamplingStrategy
 from ...models.base import DiePoint
 from ...models.sampling import SamplingOutput, SamplingTrace, SamplingPreviewRequest
+from ...models.errors import ValidationError, ConstraintError, ErrorCode, WarningCode
 from ...server.utils import get_deterministic_timestamp
 
 
@@ -35,15 +36,25 @@ class CenterEdgeStrategy(SamplingStrategy):
     def select_points(self, request: SamplingPreviewRequest) -> SamplingOutput:
         """
         Select sampling points using CENTER_EDGE strategy.
+        
+        Raises:
+            ValidationError: For invalid input parameters
+            ConstraintError: When constraints cannot be satisfied
         """
+        # Validate strategy is allowed
+        self._validate_strategy_allowed(request)
+        
+        # Validate input parameters
+        self._validate_request_parameters(request)
+        
         # Generate candidate points in deterministic ring order
         candidates = self._generate_ring_candidates(request.wafer_map_spec)
         
         # Apply wafer map valid die mask filtering
         valid_candidates = self._apply_die_mask(candidates, request.wafer_map_spec)
         
-        # Apply sampling constraints
-        selected_points = self._apply_sampling_constraints(
+        # Apply sampling constraints with error handling
+        selected_points = self._apply_sampling_constraints_with_validation(
             valid_candidates, 
             request.process_context.min_sampling_points,
             min(request.process_context.max_sampling_points, 
@@ -216,6 +227,85 @@ class CenterEdgeStrategy(SamplingStrategy):
             # Insufficient points available - return all we have
             # This should be logged as a warning in production
             return valid_candidates
+        
+        # Take up to max_points, but at least min_points  
+        target_points = min(max_points, available_points)
+        target_points = max(target_points, min_points)
+        
+        # Return first N points (already in deterministic ring order)
+        return valid_candidates[:target_points]
+    
+    def _validate_strategy_allowed(self, request: SamplingPreviewRequest) -> None:
+        """
+        Validate that CENTER_EDGE strategy is allowed for this process context.
+        
+        Raises:
+            ValidationError: If strategy is not in allowed_strategy_set
+        """
+        allowed_strategies = getattr(request.process_context, 'allowed_strategy_set', None)
+        if allowed_strategies and self.get_strategy_id() not in allowed_strategies:
+            raise ValidationError(
+                ErrorCode.DISALLOWED_STRATEGY,
+                f"Strategy '{self.get_strategy_id()}' is not allowed for this process context. "
+                f"Allowed strategies: {allowed_strategies}"
+            )
+    
+    def _validate_request_parameters(self, request: SamplingPreviewRequest) -> None:
+        """
+        Validate input request parameters.
+        
+        Raises:
+            ValidationError: For invalid parameters
+        """
+        # Validate wafer spec
+        if request.wafer_map_spec.wafer_size_mm <= 0:
+            raise ValidationError(
+                ErrorCode.INVALID_WAFER_SPEC,
+                "wafer_size_mm must be positive"
+            )
+        
+        if request.wafer_map_spec.die_pitch_x_mm <= 0 or request.wafer_map_spec.die_pitch_y_mm <= 0:
+            raise ValidationError(
+                ErrorCode.INVALID_WAFER_SPEC,
+                "die_pitch_x_mm and die_pitch_y_mm must be positive"
+            )
+        
+        # Validate constraints
+        if request.process_context.min_sampling_points < 0:
+            raise ValidationError(
+                ErrorCode.INVALID_CONSTRAINTS,
+                "min_sampling_points must be non-negative"
+            )
+        
+        if request.process_context.max_sampling_points < request.process_context.min_sampling_points:
+            raise ValidationError(
+                ErrorCode.INVALID_CONSTRAINTS,
+                "max_sampling_points must be >= min_sampling_points"
+            )
+        
+        if request.tool_profile.max_points_per_wafer < 1:
+            raise ValidationError(
+                ErrorCode.INVALID_CONSTRAINTS,
+                "tool max_points_per_wafer must be at least 1"
+            )
+    
+    def _apply_sampling_constraints_with_validation(self, valid_candidates: List[DiePoint],
+                                                  min_points: int, max_points: int) -> List[DiePoint]:
+        """
+        Apply min/max sampling point constraints with proper error handling.
+        
+        Raises:
+            ConstraintError: When minimum constraints cannot be satisfied
+        """
+        available_points = len(valid_candidates)
+        
+        # Check if we can satisfy minimum constraint
+        if available_points < min_points:
+            raise ConstraintError(
+                ErrorCode.CANNOT_MEET_MIN_POINTS,
+                f"Cannot meet min_sampling_points requirement: need {min_points} points, "
+                f"but only {available_points} valid dies available after filtering"
+            )
         
         # Take up to max_points, but at least min_points  
         target_points = min(max_points, available_points)

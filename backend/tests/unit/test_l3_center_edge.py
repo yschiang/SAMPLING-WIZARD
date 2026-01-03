@@ -243,8 +243,11 @@ def test_center_edge_wafer_geometries():
 
 def test_center_edge_insufficient_points():
     """
-    Test CENTER_EDGE behavior when insufficient points available
+    Test CENTER_EDGE behavior when insufficient points available (should now raise ConstraintError)
     """
+    from backend.src.models.errors import ConstraintError, ErrorCode
+    import pytest
+    
     strategy = CenterEdgeStrategy()
     
     # Very restrictive mask with high min requirement
@@ -259,17 +262,14 @@ def test_center_edge_insufficient_points():
         max_sampling_points=50
     )
     
-    result = strategy.select_points(request)
-    points = result.selected_points
+    # Should now raise ConstraintError instead of returning insufficient points
+    with pytest.raises(ConstraintError) as exc_info:
+        strategy.select_points(request)
     
-    # Should return what's available, even if less than min
-    assert len(points) >= 1, "Should return at least center point"
-    assert len(points) < 10, "Cannot satisfy min due to mask restriction"
-    
-    # Should include center
-    assert points[0].die_x == 0 and points[0].die_y == 0
-    
-    print(f"✅ INSUFFICIENT POINTS: Got {len(points)} points when min={request.process_context.min_sampling_points} (mask limited)")
+    error = exc_info.value
+    assert error.code == ErrorCode.CANNOT_MEET_MIN_POINTS
+    assert "need 10 points" in error.message
+    assert "only 1 valid dies" in error.message
 
 
 def test_center_edge_strategy_metadata():
