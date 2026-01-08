@@ -11,11 +11,27 @@ Frontend M6 implementation successfully integrates with Backend v1.1 real engine
 
 ## Evidence Analysis
 
-### Screenshot Evidence: Step 6 Recipe Generation
-**File**: `step6_generate-and-review-recipe.png`  
+### Complete Wizard Flow Evidence
+**Files**: All 6 wizard steps captured  
 **Timestamp**: Post BE v1.1 deployment
 
-![Step 6 Generate and Review Recipe](../evidence/step6_generate-and-review-recipe.png)
+#### Step 1: Select Tech
+![Step 1 - Select Tech](../evidence/step1_select-tech.png)
+
+#### Step 2: Select Process Context  
+![Step 2 - Select Process Context](../evidence/step2_select-process-context.png)
+
+#### Step 3: Select Tool Type
+![Step 3 - Select Tool Type](../evidence/step3_select-tool-type.png)
+
+#### Step 4: Select Sampling Strategy
+![Step 4 - Select Sampling Strategy](../evidence/step4_select-sampling-strategy.png)
+
+#### Step 5: Preview Sampling and Scoring
+![Step 5 - Preview Sampling and Scoring](../evidence/step5_preview-sampling-and-scoring.png)
+
+#### Step 6: Generate and Review Recipe
+![Step 6 - Generate and Review Recipe](../evidence/step6_generate-and-review-recipe.png)
 
 #### Real L5 Recipe Generation Validated ✅
 - **Tool Recipe ID**: `fed9fea9-cb8a-4e61-b04e-92c239d027c1`
