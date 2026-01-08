@@ -15,6 +15,8 @@ Frontend M6 implementation successfully integrates with Backend v1.1 real engine
 **File**: `step6_generate-and-review-recipe.png`  
 **Timestamp**: Post BE v1.1 deployment
 
+![Step 6 Generate and Review Recipe](../evidence/step6_generate-and-review-recipe.png)
+
 #### Real L5 Recipe Generation Validated ✅
 - **Tool Recipe ID**: `fed9fea9-cb8a-4e61-b04e-92c239d027c1`
 - **Tool Type**: `OPTICAL_METROLOGY`
