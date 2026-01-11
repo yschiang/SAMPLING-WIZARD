@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sampling Wizard - Preview &amp; Scoring</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        // Blue Accent Theme Colors
+                        "primary": "#2563eb", // Blue-600 for strong primary actions
+                        "primary-hover": "#1d4ed8", // Blue-700
+                        "primary-light": "#eff6ff", // Blue-50
+                        "background-light": "#f9fafb", // Gray-50
+                        "background-dark": "#0f172a", // Slate-950
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1e293b", // Slate-800
+                        "accent": "#3b82f6", // Blue-500
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
+                    },
+                    borderRadius: {"DEFAULT": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .wafer-grid {background-size: 10% 10%;
+            background-image:
+                linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-position: center;
+        }
+        .dark .wafer-grid {
+            background-image:
+                linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        }
+        .pattern-hatch {
+            background-image: repeating-linear-gradient(
+                45deg,
+                rgba(0, 0, 0, 0.03),
+                rgba(0, 0, 0, 0.03) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+        }
+        .dark .pattern-hatch {
+            background-image: repeating-linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.03),
+                rgba(255, 255, 255, 0.03) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+        }
+        .tabular-nums {
+            font-feature-settings: "tnum";
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 flex flex-col min-h-screen overflow-x-hidden">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-gray-200 dark:border-gray-800 px-6 h-16 bg-surface-light dark:bg-surface-dark sticky top-0 z-50">
+<div class="flex items-center gap-3">
+<div class="size-9 bg-gray-50 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[24px]">memory</span>
+</div>
+<h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">Sampling Wizard</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+<a class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors" href="#">Dashboard</a>
+<a class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors" href="#">Sampling List</a>
+<a class="text-primary dark:text-blue-400" href="#">Strategy Config</a>
+<a class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors" href="#">Settings</a>
+</nav>
+<div class="flex items-center gap-3 pl-4 border-l border-gray-200 dark:border-gray-800">
+<span class="hidden lg:block text-sm font-medium text-gray-700 dark:text-gray-200">Alex Chen</span>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 ring-1 ring-gray-200 dark:ring-gray-700" data-alt="User profile avatar showing a generic silhouette" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC3CnEjfZ53v0cAq241JhIhSe4fzysidM59aNoAcJUXnlzcW4iYZTRZgCcXIywN8lEH4ry4J5FMpBNLHQFpUNyKZMpMwO2iO5dNGZn8jNH94QQ6vpH30PP8bPdePVZDA_eQ3fpZuQZNetlZ09wpdpsq0SHgA39gInnno-loNQhX3whkQbNolLmRQzhLAGyimw6lofV5DuYM_0iZWG_FL1Lp7HZenx1RgTHggNaIgj_dH3RfKn7EOGO_EpZ89aTI79eRwGstMOHATjc");'></div>
+</div>
+</header>
+<main class="flex-grow flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8">
+<div class="w-full max-w-[1100px] flex flex-col gap-6">
+<div class="w-full pt-2 pb-6">
+<nav aria-label="Wizard Progress">
+<ol class="flex items-center w-full relative">
+<li class="relative flex flex-col items-center group">
+<div class="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow-sm z-10">
+<span class="material-symbols-outlined text-[16px] font-bold">check</span>
+</div>
+<span class="absolute top-9 left-1/2 -translate-x-1/2 text-[11px] font-medium text-gray-900 dark:text-gray-200 whitespace-nowrap">Technology</span>
+</li>
+<li class="flex-1 h-[1px] bg-primary mx-0"></li>
+<li class="relative flex flex-col items-center group">
+<div class="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow-sm z-10">
+<span class="material-symbols-outlined text-[16px] font-bold">check</span>
+</div>
+<span class="absolute top-9 left-1/2 -translate-x-1/2 text-[11px] font-medium text-gray-900 dark:text-gray-200 whitespace-nowrap">Process</span>
+</li>
+<li class="flex-1 h-[1px] bg-primary mx-0"></li>
+<li class="relative flex flex-col items-center group">
+<div class="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow-sm z-10">
+<span class="material-symbols-outlined text-[16px] font-bold">check</span>
+</div>
+<span class="absolute top-9 left-1/2 -translate-x-1/2 text-[11px] font-medium text-gray-900 dark:text-gray-200 whitespace-nowrap">Tool</span>
+</li>
+<li class="flex-1 h-[1px] bg-primary mx-0"></li>
+<li class="relative flex flex-col items-center group">
+<div class="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow-sm z-10">
+<span class="material-symbols-outlined text-[16px] font-bold">check</span>
+</div>
+<span class="absolute top-9 left-1/2 -translate-x-1/2 text-[11px] font-medium text-gray-900 dark:text-gray-200 whitespace-nowrap">Strategy</span>
+</li>
+<li class="flex-1 h-[1px] bg-primary mx-0"></li>
+<li class="relative flex flex-col items-center group">
+<div class="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white ring-4 ring-blue-100 dark:ring-blue-900/40 font-bold text-xs shadow-md z-10">
+                            5
+                        </div>
+<span class="absolute top-9 left-1/2 -translate-x-1/2 text-[11px] font-bold text-primary dark:text-blue-400 whitespace-nowrap">Preview &amp; Score</span>
+</li>
+<li class="flex-1 h-[1px] bg-gray-200 dark:bg-gray-700 mx-0"></li>
+<li class="relative flex flex-col items-center group">
+<div class="flex h-7 w-7 items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-medium text-xs z-10">
+                            6
+                        </div>
+<span class="absolute top-9 left-1/2 -translate-x-1/2 text-[11px] font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap">Recipe</span>
+</li>
+</ol>
+</nav>
+</div>
+<div class="flex flex-col gap-2">
+<h1 class="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">Strategy Preview &amp; Scoring</h1>
+<p class="text-gray-500 dark:text-gray-400 text-sm max-w-3xl">
+                Verify your sampling distribution on the virtual wafer map and review projected performance metrics.
+            </p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<div class="lg:col-span-7 flex flex-col gap-4">
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col items-center justify-center relative min-h-[520px] overflow-hidden group">
+<div class="absolute top-4 right-4 flex flex-col gap-2 z-10">
+<button class="size-8 flex items-center justify-center rounded bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-primary dark:hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-primary dark:hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-primary dark:hover:text-primary transition-colors tooltip" title="Reset View">
+<span class="material-symbols-outlined text-[18px]">center_focus_strong</span>
+</button>
+</div>
+<div class="absolute bottom-4 left-4 flex flex-col gap-2 z-10 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm p-3 rounded border border-gray-200 dark:border-gray-700 text-xs shadow-sm">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-primary"></div>
+<span class="font-medium text-gray-700 dark:text-gray-300">Sampling Point</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full border border-gray-400 bg-transparent"></div>
+<span class="font-medium text-gray-500 dark:text-gray-400">Die Boundary</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2.5 h-2.5 pattern-hatch border border-gray-300 dark:border-gray-600"></div>
+<span class="font-medium text-gray-500 dark:text-gray-400">Exclusion Zone</span>
+</div>
+</div>
+<div class="relative w-[380px] h-[380px] sm:w-[440px] sm:h-[440px] rounded-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-[#111827] overflow-hidden wafer-grid shadow-inner">
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-b"></div>
+<div class="absolute inset-0 rounded-full border-[16px] border-gray-100 dark:border-gray-800 pattern-hatch pointer-events-none opacity-50"></div>
+<div class="absolute top-[35%] left-[45%] -translate-x-1/2 -translate-y-1/2 size-2 bg-primary rounded-full shadow-sm z-20" title="Die: X12-Y40"></div>
+<div class="absolute top-[35%] left-[65%] -translate-x-1/2 -translate-y-1/2 size-2 bg-primary rounded-full shadow-sm z-20"></div>
+<div class="absolute top-[55%] left-[55%] -translate-x-1/2 -translate-y-1/2 size-2 bg-primary rounded-full shadow-sm z-20"></div>
+<div class="absolute top-[65%] left-[35%] -translate-x-1/2 -translate-y-1/2 size-2 bg-primary rounded-full shadow-sm z-20"></div>
+<div class="absolute top-[25%] left-[55%] -translate-x-1/2 -translate-y-1/2 size-2 bg-primary rounded-full shadow-sm z-20"></div>
+<div class="absolute top-[75%] left-[75%] -translate-x-1/2 -translate-y-1/2 size-2 bg-primary rounded-full shadow-sm z-20"></div>
+<div class="absolute top-[45%] left-[25%] -translate-x-1/2 -translate-y-1/2 size-2 bg-primary rounded-full shadow-sm z-20"></div>
+<div class="absolute top-[45%] left-[75%] -translate-x-1/2 -translate-y-1/2 size-2 bg-primary rounded-full shadow-sm z-20"></div>
+<div class="absolute top-[15%] left-[55%] -translate-x-1/2 -translate-y-1/2 size-2 bg-accent rounded-full shadow-sm ring-2 ring-primary-light dark:ring-blue-900 animate-pulse z-20"></div>
+<div class="absolute top-0 left-0 w-full h-[1px] bg-primary/30 dark:bg-primary/20 shadow-[0_0_10px_rgba(37,99,235,0.2)] translate-y-[-10px] group-hover:translate-y-[450px] transition-transform duration-[2000ms] ease-linear z-10"></div>
+</div>
+<div class="absolute top-4 left-4 w-60 max-w-full">
+<div class="flex items-center bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-200 dark:border-gray-600 px-3 py-1.5 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
+<span class="material-symbols-outlined text-gray-400 text-[18px]">search</span>
+<input class="ml-2 w-full bg-transparent border-none p-0 text-xs focus:ring-0 text-gray-700 dark:text-gray-200 placeholder-gray-400" placeholder="Locate die (X,Y)..." type="text"/>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-5 flex flex-col h-full gap-6">
+<div class="flex flex-col gap-4 bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 p-6 opacity-[0.05] pointer-events-none">
+<span class="material-symbols-outlined text-[140px] text-primary">analytics</span>
+</div>
+<div class="flex justify-between items-start z-10">
+<div>
+<h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Efficiency Score</h3>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="text-5xl font-bold tracking-tight text-primary dark:text-blue-400 tabular-nums">98.5</span>
+<span class="text-base font-medium text-gray-400">/ 100</span>
+</div>
+</div>
+<div class="border border-blue-200 dark:border-blue-800 text-primary dark:text-blue-300 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-blue-50 dark:bg-blue-900/30">
+                            Optimal
+                        </div>
+</div>
+<div class="h-1 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mt-2">
+<div class="h-full bg-primary w-[98.5%] rounded-full shadow-[0_0_10px_rgba(37,99,235,0.3)]"></div>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400 z-10 mt-1">
+                        Strategy exceeds baseline by <span class="font-medium text-primary dark:text-blue-400">4.2%</span>.
+                    </p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+<div class="bg-surface-light dark:bg-surface-dark p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-between hover:border-primary/50 dark:hover:border-primary/50 transition-colors group">
+<div>
+<p class="text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide group-hover:text-primary transition-colors">Die Coverage</p>
+<p class="text-xl font-bold text-gray-900 dark:text-white tabular-nums">12.4%</p>
+</div>
+<div class="h-8 w-16 flex items-end justify-between gap-0.5 opacity-60">
+<div class="w-1.5 bg-blue-300 dark:bg-blue-900 h-[40%] rounded-sm"></div>
+<div class="w-1.5 bg-blue-400 dark:bg-blue-800 h-[60%] rounded-sm"></div>
+<div class="w-1.5 bg-blue-500 dark:bg-blue-700 h-[50%] rounded-sm"></div>
+<div class="w-1.5 bg-primary dark:bg-blue-600 h-[80%] rounded-sm"></div>
+<div class="w-1.5 bg-blue-500 dark:bg-blue-700 h-[70%] rounded-sm"></div>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-between hover:border-primary/50 dark:hover:border-primary/50 transition-colors group">
+<div>
+<p class="text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide group-hover:text-primary transition-colors">Confidence</p>
+<p class="text-xl font-bold text-gray-900 dark:text-white tabular-nums">95% <span class="text-xs font-normal text-gray-400 ml-1">±2%</span></p>
+</div>
+<div class="text-primary dark:text-blue-400">
+<span class="material-symbols-outlined font-light">verified_user</span>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-between hover:border-primary/50 dark:hover:border-primary/50 transition-colors group">
+<div>
+<p class="text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide group-hover:text-primary transition-colors">Risk Sensitivity</p>
+<p class="text-xl font-bold text-gray-900 dark:text-white">High</p>
+</div>
+<div class="text-gray-400 dark:text-gray-500 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors">
+<span class="material-symbols-outlined font-light">analytics</span>
+</div>
+</div>
+</div>
+<div class="mt-auto bg-[#FEFCE8] dark:bg-yellow-900/10 border border-[#FEF3C7] dark:border-yellow-900/30 p-4 rounded-lg flex items-start gap-3">
+<span class="material-symbols-outlined text-yellow-600 dark:text-yellow-500 mt-0.5 text-[20px]">warning</span>
+<div>
+<p class="text-sm font-semibold text-yellow-900 dark:text-yellow-100 mb-1">Exclusion Zone Warning</p>
+<p class="text-xs text-yellow-800 dark:text-yellow-200/80 leading-relaxed">
+                            3 sample points currently fall within the 2mm edge exclusion zone. Yield data may be noisy.
+                            <a class="underline font-medium hover:text-yellow-950 dark:hover:text-yellow-50 transition-colors" href="#">Auto-adjust points</a>
+</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sticky bottom-0 bg-white/90 dark:bg-[#0f172a]/90 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 p-4 -mx-4 sm:-mx-6 lg:-mx-8 mt-4 z-20">
+<div class="max-w-[1100px] mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8">
+<button class="flex items-center justify-center h-10 px-4 text-gray-600 dark:text-gray-400 font-medium text-sm hover:text-primary dark:hover:text-blue-400 transition-colors">
+<span class="material-symbols-outlined text-[18px] mr-2">arrow_back</span>
+                    Back
+                </button>
+<div class="flex gap-3">
+<button class="flex items-center justify-center h-10 px-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-medium text-sm rounded hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-primary dark:hover:text-primary transition-colors">
+                        Save Draft
+                    </button>
+<button class="flex items-center justify-center h-10 px-6 bg-primary text-white font-medium text-sm rounded hover:bg-primary-hover transition-colors shadow-sm shadow-blue-200 dark:shadow-blue-900/20">
+<span class="material-symbols-outlined text-[18px] mr-2">arrow_forward</span>
+                        Continue
+                    </button>
+</div>
+</div>
+</div>
+</div></main>
+</body></html>

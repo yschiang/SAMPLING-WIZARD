@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html class="antialiased bg-white text-slate-950" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Technology Selection - Unified Heading Style</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              border: "#e2e8f0", // slate-200
+              input: "#e2e8f0",
+              ring: "#2563eb", // blue-600 ring
+              background: "#ffffff",
+              foreground: "#0f172a", // slate-900
+              primary: {
+                DEFAULT: "#2563eb", // blue-600
+                hover: "#1d4ed8", // blue-700
+                foreground: "#ffffff",
+              },
+              secondary: {
+                DEFAULT: "#f1f5f9", // slate-100
+                foreground: "#0f172a",
+              },
+              muted: {
+                DEFAULT: "#f8fafc", // slate-50
+                foreground: "#64748b", // slate-500
+              },
+              accent: {
+                DEFAULT: "#eff6ff", // blue-50
+                foreground: "#1e40af", // blue-800
+              },
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+            boxShadow: {
+                'subtle': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                'card': '0 0 0 1px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04)',
+                'active': '0 0 0 2px #2563eb',
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .technical-grid-bg {
+            background-image: 
+                linear-gradient(to right, rgba(37, 99, 235, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(37, 99, 235, 0.04) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-white text-slate-900 font-sans min-h-screen flex flex-col selection:bg-blue-100 selection:text-blue-900">
+<header class="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur-sm h-16">
+<div class="max-w-[1100px] mx-auto px-6 h-full flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-8 flex items-center justify-center rounded-lg bg-blue-50 border border-blue-100 text-blue-600">
+<span class="material-symbols-outlined text-xl">token</span>
+</div>
+<span class="text-base font-bold text-slate-900 tracking-tight">Sampling Wizard</span>
+</div>
+<nav class="hidden md:flex items-center gap-6 ml-auto mr-8">
+<a class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors" href="#">Dashboard</a>
+<a class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors" href="#">Sampling List</a>
+<a class="text-sm font-medium text-blue-600" href="#">Strategy Config</a>
+<a class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors" href="#">Settings</a>
+</nav>
+<div class="flex items-center gap-2.5 pl-6 border-l border-slate-200 h-6">
+<div class="size-5 rounded-full bg-slate-200"></div>
+<div class="text-xs font-medium text-slate-500">
+                Logged in as <span class="text-slate-900 font-semibold">Admin</span>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 w-full max-w-[1100px] mx-auto px-6 py-10 flex flex-col gap-8">
+<nav aria-label="Progress" class="w-full">
+<ol class="flex items-center w-full" role="list">
+<li class="relative flex flex-col items-center gap-2 flex-1 group">
+<div class="flex items-center w-full">
+<div class="flex-1 h-[1px]"></div>
+<span class="relative flex items-center justify-center size-8 bg-blue-600 text-white rounded-full text-xs font-semibold shadow-sm z-10 ring-4 ring-white shadow-blue-200/50">
+                        1
+                    </span>
+<div class="flex-1 h-[1px] bg-slate-200"></div>
+</div>
+<span class="absolute top-10 text-xs font-semibold text-blue-700">Technology</span>
+</li>
+<li class="relative flex flex-col items-center gap-2 flex-1 group">
+<div class="flex items-center w-full">
+<div class="flex-1 h-[1px] bg-slate-200"></div>
+<span class="relative flex items-center justify-center size-8 bg-white border border-slate-200 text-slate-400 rounded-full text-xs font-medium z-10">
+                        2
+                    </span>
+<div class="flex-1 h-[1px] bg-slate-200"></div>
+</div>
+<span class="absolute top-10 text-xs font-medium text-slate-500">Process</span>
+</li>
+<li class="relative flex flex-col items-center gap-2 flex-1 group">
+<div class="flex items-center w-full">
+<div class="flex-1 h-[1px] bg-slate-200"></div>
+<span class="relative flex items-center justify-center size-8 bg-white border border-slate-200 text-slate-400 rounded-full text-xs font-medium z-10">
+                        3
+                    </span>
+<div class="flex-1 h-[1px] bg-slate-200"></div>
+</div>
+<span class="absolute top-10 text-xs font-medium text-slate-500">Tool</span>
+</li>
+<li class="relative flex flex-col items-center gap-2 flex-1 group">
+<div class="flex items-center w-full">
+<div class="flex-1 h-[1px] bg-slate-200"></div>
+<span class="relative flex items-center justify-center size-8 bg-white border border-slate-200 text-slate-400 rounded-full text-xs font-medium z-10">
+                        4
+                    </span>
+<div class="flex-1 h-[1px] bg-slate-200"></div>
+</div>
+<span class="absolute top-10 text-xs font-medium text-slate-500">Strategy</span>
+</li>
+<li class="relative flex flex-col items-center gap-2 flex-1 group">
+<div class="flex items-center w-full">
+<div class="flex-1 h-[1px] bg-slate-200"></div>
+<span class="relative flex items-center justify-center size-8 bg-white border border-slate-200 text-slate-400 rounded-full text-xs font-medium z-10">
+                        5
+                    </span>
+<div class="flex-1 h-[1px] bg-slate-200"></div>
+</div>
+<span class="absolute top-10 text-xs font-medium text-slate-500 w-max">Preview &amp; Score</span>
+</li>
+<li class="relative flex flex-col items-center gap-2 flex-1 group">
+<div class="flex items-center w-full">
+<div class="flex-1 h-[1px] bg-slate-200"></div>
+<span class="relative flex items-center justify-center size-8 bg-white border border-slate-200 text-slate-400 rounded-full text-xs font-medium z-10">
+                        6
+                    </span>
+<div class="flex-1 h-[1px]"></div>
+</div>
+<span class="absolute top-10 text-xs font-medium text-slate-500">Recipe</span>
+</li>
+</ol>
+</nav>
+<div class="flex flex-col gap-1 w-full text-left">
+<h2 class="text-2xl font-bold text-slate-900 font-sans">Technology Node</h2>
+<p class="text-slate-500 text-sm">
+            Choose the specific manufacturing process node to initialize the geometry.
+        </p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+<div class="lg:col-span-3 flex flex-col gap-4">
+<div class="flex flex-col rounded-xl overflow-hidden bg-white border border-slate-200 shadow-sm divide-y divide-slate-100">
+<label class="group relative flex items-center justify-between px-4 py-3.5 cursor-pointer hover:bg-slate-50 transition-colors">
+<span class="text-sm font-medium text-slate-700 group-hover:text-slate-900 transition-colors">28nm</span>
+<input class="sr-only" name="tech-node" type="radio" value="28nm"/>
+</label>
+<label class="group relative flex items-center justify-between px-4 py-3.5 cursor-pointer hover:bg-slate-50 transition-colors">
+<span class="text-sm font-medium text-slate-700 group-hover:text-slate-900 transition-colors">14nm</span>
+<input class="sr-only" name="tech-node" type="radio" value="14nm"/>
+</label>
+<label class="group relative flex items-center justify-between px-4 py-3.5 cursor-pointer bg-blue-50/70 transition-colors">
+<span class="text-sm font-semibold text-blue-700">7nm</span>
+<div class="text-blue-600 flex items-center">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</div>
+<input checked="" class="sr-only" name="tech-node" type="radio" value="7nm"/>
+</label>
+<label class="group relative flex items-center justify-between px-4 py-3.5 cursor-pointer hover:bg-slate-50 transition-colors">
+<span class="text-sm font-medium text-slate-700 group-hover:text-slate-900 transition-colors">5nm</span>
+<input class="sr-only" name="tech-node" type="radio" value="5nm"/>
+</label>
+<label class="group relative flex items-center justify-between px-4 py-3.5 cursor-pointer hover:bg-slate-50 transition-colors">
+<span class="text-sm font-medium text-slate-700 group-hover:text-slate-900 transition-colors">3nm</span>
+<input class="sr-only" name="tech-node" type="radio" value="3nm"/>
+</label>
+</div>
+<button class="text-xs text-slate-500 hover:text-blue-600 font-medium underline underline-offset-2 self-start px-1 transition-colors">
+                Import custom node definition
+            </button>
+</div>
+<div class="lg:col-span-9 h-full min-h-[480px]">
+<div class="sticky top-24 w-full h-[520px] rounded-xl border border-slate-200 bg-white shadow-card overflow-hidden flex flex-col relative technical-grid-bg">
+<div class="absolute top-5 left-5 z-20 flex gap-2">
+<div class="px-2.5 py-1 rounded-md bg-white border border-slate-200 shadow-sm text-[11px] font-mono font-medium text-blue-700">
+                        7nm FinFET
+                    </div>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center p-8 text-center z-10 relative">
+<div class="relative size-72 rounded-full border border-slate-100 flex items-center justify-center bg-blue-50/20">
+<div class="absolute inset-0 rounded-full border border-dashed border-blue-200 opacity-60" style="transform: scale(0.8)"></div>
+<div class="absolute inset-0 rounded-full border border-dashed border-blue-200 opacity-40" style="transform: scale(0.6)"></div>
+<div class="grid grid-cols-3 gap-3 opacity-60">
+<div class="size-1.5 bg-blue-600 rounded-full"></div>
+<div class="size-1.5 bg-blue-600 rounded-full"></div>
+<div class="size-1.5 bg-blue-600 rounded-full"></div>
+<div class="size-1.5 bg-blue-600 rounded-full"></div>
+<div class="size-1.5 bg-blue-600 rounded-full"></div>
+<div class="size-1.5 bg-blue-600 rounded-full"></div>
+<div class="size-1.5 bg-blue-600 rounded-full"></div>
+<div class="size-1.5 bg-blue-600 rounded-full"></div>
+<div class="size-1.5 bg-blue-600 rounded-full"></div>
+</div>
+</div>
+<div class="mt-8 text-center space-y-1">
+<p class="text-sm font-semibold text-slate-900">7nm Geometry Loaded</p>
+<p class="text-xs text-slate-500">Default FinFET design rules applied.</p>
+</div>
+</div>
+<div class="absolute bottom-0 inset-x-0 border-t border-slate-100 bg-white/80 backdrop-blur px-4 py-2 flex justify-between items-center text-[10px] font-mono text-slate-400">
+<span>SCALE: 1:5000</span>
+<span>COORD: 0,0</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="sticky bottom-0 w-full border-t border-slate-200 bg-white/90 backdrop-blur-md z-40">
+<div class="max-w-[1100px] mx-auto px-6 py-4 flex justify-end items-center gap-3">
+<button class="px-6 py-2 text-sm font-medium text-slate-700 bg-transparent border border-slate-300 rounded-lg hover:bg-slate-50 transition-all">
+            Back
+        </button>
+<button class="group flex items-center gap-2 px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium shadow-sm transition-all focus:ring-2 focus:ring-offset-2 focus:ring-blue-600">
+<span>Continue</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sampling Wizard - Final Recipe Summary</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2563eb", // Blue-600
+                        "background-light": "#fafafa",
+                        "background-dark": "#22262a",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1e2124",
+                        "border-light": "#e5e7eb",
+                        "border-dark": "#374151",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen flex flex-col antialiased selection:bg-primary/30">
+<header class="sticky top-0 z-50 w-full bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark">
+<div class="px-6 md:px-10 py-3 flex items-center justify-between relative">
+<div class="flex items-center gap-3 text-slate-900 dark:text-white">
+<div class="size-8 text-primary flex items-center justify-center bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-[20px]">science</span>
+</div>
+<h2 class="text-base font-bold tracking-tight">Sampling Wizard</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+<a class="text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors" href="#">Dashboard</a>
+<a class="text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors" href="#">Sampling List</a>
+<a class="text-sm font-medium text-primary dark:text-blue-400" href="#">Strategy Config</a>
+<a class="text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors" href="#">Settings</a>
+</nav>
+<div class="flex items-center gap-3">
+<div class="hidden md:flex flex-col items-end">
+<span class="text-sm font-medium text-slate-900 dark:text-white">Dr. A. Jensen</span>
+<span class="text-xs text-slate-500 dark:text-slate-400">Process Engineer</span>
+</div>
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-8 border border-border-light dark:border-border-dark" data-alt="User avatar showing a professional portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAoF58-JE3UKRxB7HETMz1m5SdkWUE8MoEZkfSAdNE3ttOKX2z4gNLe0NWHV_2S7InQeUkK1jJXpP4g3rpfJBM8eK_54lDGWcerM-1_DQQLIfBxjturEEOrKooNpBC8xB1zs2Y9g4cxDx_38VHeTwHLmUw257MrCEbuaIKsyWMlZ4B2yR7XqsI6r34QWrXBoIo6TE6U6rZdj1LVL3PAUGPSoXE3JHq5GTzAAnGeh7Jdiu7mL1GkHkoskCPdIVh50vLrTIk_wiFjoqQ");'></div>
+</div>
+</div>
+</header>
+<main class="flex-grow flex flex-col items-center py-10 px-4 md:px-8">
+<nav class="w-full max-w-[960px] mb-8 overflow-x-auto pb-2">
+<ol class="flex items-center whitespace-nowrap min-w-full md:min-w-0">
+<li class="flex items-center text-sm font-medium text-primary">
+<span class="flex items-center justify-center size-5 rounded-full bg-primary text-white mr-2">
+<span class="material-symbols-outlined text-[14px] font-bold leading-none">check</span>
+</span>
+                    Technology
+                    <span class="mx-3 text-slate-300 dark:text-slate-700">/</span>
+</li>
+<li class="flex items-center text-sm font-medium text-primary">
+<span class="flex items-center justify-center size-5 rounded-full bg-primary text-white mr-2">
+<span class="material-symbols-outlined text-[14px] font-bold leading-none">check</span>
+</span>
+                    Process
+                    <span class="mx-3 text-slate-300 dark:text-slate-700">/</span>
+</li>
+<li class="flex items-center text-sm font-medium text-primary">
+<span class="flex items-center justify-center size-5 rounded-full bg-primary text-white mr-2">
+<span class="material-symbols-outlined text-[14px] font-bold leading-none">check</span>
+</span>
+                    Tool
+                    <span class="mx-3 text-slate-300 dark:text-slate-700">/</span>
+</li>
+<li class="flex items-center text-sm font-medium text-primary">
+<span class="flex items-center justify-center size-5 rounded-full bg-primary text-white mr-2">
+<span class="material-symbols-outlined text-[14px] font-bold leading-none">check</span>
+</span>
+                    Strategy
+                    <span class="mx-3 text-slate-300 dark:text-slate-700">/</span>
+</li>
+<li class="flex items-center text-sm font-medium text-primary">
+<span class="flex items-center justify-center size-5 rounded-full bg-primary text-white mr-2">
+<span class="material-symbols-outlined text-[14px] font-bold leading-none">check</span>
+</span>
+                    Preview &amp; Score
+                    <span class="mx-3 text-slate-300 dark:text-slate-700">/</span>
+</li>
+<li class="flex items-center text-sm font-bold text-primary">
+<span class="flex items-center justify-center size-5 rounded-full bg-primary text-white mr-2 text-[10px]">6</span>
+                    Final Recipe
+                </li>
+</ol>
+</nav>
+<div class="w-full max-w-[960px] bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden flex flex-col">
+<div class="px-8 py-6 border-b border-border-light dark:border-border-dark flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<h1 class="text-xl font-semibold tracking-tight text-slate-900 dark:text-white mb-1">Final Recipe Summary</h1>
+<p class="text-sm text-slate-500 dark:text-slate-400">Step 6: Final Verification before commitment.</p>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-800/30">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span class="text-xs font-semibold uppercase tracking-wide">Validation Passed</span>
+</div>
+</div>
+<div class="p-8 flex flex-col gap-10">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="flex flex-col p-5 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark hover:border-primary/30 transition-colors group">
+<div class="flex items-center gap-2 mb-3 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-[20px]">precision_manufacturing</span>
+<span class="text-xs font-semibold uppercase tracking-wider">Tool Type</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">KLA-Tencor 29xx</p>
+</div>
+<div class="flex flex-col p-5 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark hover:border-primary/30 transition-colors group">
+<div class="flex items-center gap-2 mb-3 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-[20px]">fingerprint</span>
+<span class="text-xs font-semibold uppercase tracking-wider">Recipe ID</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors font-mono">WFR-SMPL-2023-X9</p>
+</div>
+<div class="flex flex-col p-5 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark hover:border-primary/30 transition-colors group">
+<div class="flex items-center gap-2 mb-3 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-[20px]">grid_4x4</span>
+<span class="text-xs font-semibold uppercase tracking-wider">Total Points</span>
+</div>
+<p class="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">1,240</p>
+</div>
+</div>
+<div class="flex flex-col">
+<details class="group bg-white dark:bg-[#1a1d21] rounded-lg border border-border-light dark:border-border-dark overflow-hidden" open="">
+<summary class="flex cursor-pointer items-center justify-between px-6 py-4 bg-gray-50 dark:bg-[#25292e] transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2e33]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-500 group-open:rotate-90 transition-transform">chevron_right</span>
+<h3 class="text-sm font-bold uppercase tracking-wide text-slate-700 dark:text-slate-200">Generated Recipe Payload</h3>
+</div>
+<span class="text-xs font-mono text-slate-400 dark:text-slate-500">1.4 KB</span>
+</summary>
+<div class="p-0 border-t border-border-light dark:border-border-dark relative">
+<div class="absolute top-4 right-4 flex gap-2 z-10">
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white dark:bg-[#2c3035] border border-border-light dark:border-border-dark text-slate-600 dark:text-slate-300 text-xs font-medium hover:text-primary hover:border-primary/30 transition-all shadow-sm">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+                                    Copy JSON
+                                </button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white dark:bg-[#2c3035] border border-border-light dark:border-border-dark text-slate-600 dark:text-slate-300 text-xs font-medium hover:text-primary hover:border-primary/30 transition-all shadow-sm">
+<span class="material-symbols-outlined text-[16px]">download</span>
+                                    Download
+                                </button>
+</div>
+<div class="bg-gray-50 dark:bg-[#15171a] p-6 overflow-x-auto">
+<pre class="font-mono text-xs md:text-sm leading-relaxed text-slate-600 dark:text-slate-400">{
+  <span class="text-slate-800 dark:text-slate-200 font-semibold">"meta"</span>: {
+    <span class="text-slate-800 dark:text-slate-200">"version"</span>: <span class="text-slate-500 dark:text-slate-400">"2.1.0"</span>,
+    <span class="text-slate-800 dark:text-slate-200">"timestamp"</span>: <span class="text-slate-500 dark:text-slate-400">"2023-10-27T14:30:00Z"</span>,
+    <span class="text-slate-800 dark:text-slate-200">"user_id"</span>: <span class="text-slate-500 dark:text-slate-400">"usr_8821"</span>
+  },
+  <span class="text-slate-800 dark:text-slate-200 font-semibold">"configuration"</span>: {
+    <span class="text-slate-800 dark:text-slate-200">"tool_type"</span>: <span class="text-slate-500 dark:text-slate-400">"KLA-Tencor 29xx"</span>,
+    <span class="text-slate-800 dark:text-slate-200">"recipe_id"</span>: <span class="text-slate-500 dark:text-slate-400">"WFR-SMPL-2023-X9"</span>,
+    <span class="text-slate-800 dark:text-slate-200">"strategy"</span>: <span class="text-slate-500 dark:text-slate-400">"random_uniform_distribution"</span>
+  },
+  <span class="text-slate-800 dark:text-slate-200 font-semibold">"parameters"</span>: {
+    <span class="text-slate-800 dark:text-slate-200">"exclusion_zone_mm"</span>: <span class="text-slate-500 dark:text-slate-400">2.0</span>,
+    <span class="text-slate-800 dark:text-slate-200">"edge_clearance_mm"</span>: <span class="text-slate-500 dark:text-slate-400">5.0</span>,
+    <span class="text-slate-800 dark:text-slate-200">"density_factor"</span>: <span class="text-slate-500 dark:text-slate-400">0.85</span>
+  },
+  <span class="text-slate-800 dark:text-slate-200 font-semibold">"points"</span>: {
+    <span class="text-slate-800 dark:text-slate-200">"total_count"</span>: <span class="text-slate-500 dark:text-slate-400">1240</span>,
+    <span class="text-slate-800 dark:text-slate-200">"coordinates"</span>: [
+      { <span class="text-slate-800 dark:text-slate-200">"x"</span>: <span class="text-slate-500 dark:text-slate-400">12.5</span>, <span class="text-slate-800 dark:text-slate-200">"y"</span>: <span class="text-slate-500 dark:text-slate-400">45.2</span> },
+      { <span class="text-slate-800 dark:text-slate-200">"x"</span>: <span class="text-slate-500 dark:text-slate-400">-34.1</span>, <span class="text-slate-800 dark:text-slate-200">"y"</span>: <span class="text-slate-500 dark:text-slate-400">10.8</span> },
+      <span class="text-slate-400 italic">// ... 1238 more items</span>
+    ]
+  }
+}
+</pre>
+</div>
+</div>
+</details>
+</div>
+</div>
+<div class="px-8 py-6 bg-gray-50 dark:bg-[#25292e] border-t border-border-light dark:border-border-dark flex items-center justify-between">
+<button class="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-white dark:hover:bg-[#2c3035] hover:text-primary hover:border-primary/50 transition-all shadow-sm">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                    Back to Validation
+                </button>
+<button class="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary text-white font-semibold shadow-md hover:bg-blue-700 transition-all">
+<span class="material-symbols-outlined text-[20px]">rocket_launch</span>
+                    Finalize Recipe
+                </button>
+</div>
+</div>
+<p class="mt-6 text-xs text-slate-400 text-center max-w-lg">
+            By finalizing, this recipe will be committed to the MES queue. <br/>Action cannot be undone without supervisor approval.
+        </p>
+</main>
+</body></html>
