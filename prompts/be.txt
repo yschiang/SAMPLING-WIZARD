@@ -1,0 +1,241 @@
+# BE v1 Split Plan (Walking Skeleton → Real Logic)
+
+**Status:** FE completed M6 (Preview → Score → Generate Recipe end-to-end UI).  
+**BE current:** v0 walking skeleton (schema-correct placeholder behavior).  
+**Objective:** Replace placeholder internals with real deterministic implementations **without any OpenAPI/contract drift**.
+
+---
+
+## 0. Non-Negotiable Rules
+
+### Contract & API
+- **Do not** change `api/openapi.yaml`.
+- **Do not** add/remove endpoints.
+- **Do not** rename fields or response envelopes.
+- All responses must remain **schema-correct**.
+
+### Layer invariants (L3/L4/L5)
+- **L3** selects points only.
+- **L4** scores only and **MUST NOT** mutate L3 outputs:
+  - No reorder
+  - No dedupe
+  - No filter
+  - No truncate
+  - No rewriting point values
+- **L5** translates to tool recipe only.
+
+### Response semantics
+- Non-blocking issues return **HTTP 200** with `warnings[]` in body.
+- Blocking issues return **ErrorResponse** with proper 4xx/5xx.
+- Deterministic outputs for identical inputs.
+
+---
+
+## 1. Working Agreement
+
+### PR policy
+- **One PR = one concern** (small and reviewable).
+- Each PR must include:
+  1) Layer impacted (L3/L4/L5/Catalog/TestHarness)
+  2) Invariants asserted
+  3) Tests added/updated
+  4) Any behavior changes described precisely
+
+### “Seam freeze”
+- FE can continue bugfix only.
+- BE replaces internals behind frozen seam.
+- Any “missing data / missing fields” must be logged as **v1 proposal** issue — no ad-hoc patches.
+
+---
+
+## 2. Roadmap Overview (Split PR Plan)
+
+### PR-0 — Test Harness + Golden Path (No Behavior Change)
+**Goal:** Make the repo safe for iterative algorithm changes.
+
+**Deliverables**
+- Add/strengthen tests:
+  - Determinism tests (same input → same output)
+  - L4 no-mutation test (keep + strengthen)
+  - E2E happy path: `preview → score → generate`
+- Optional (recommended): store golden request payloads under `backend/tests/fixtures/`
+
+**Acceptance Criteria**
+- All existing endpoints behave exactly the same as before.
+- CI green.
+- E2E test passes against current skeleton behavior.
+
+---
+
+### PR-1 — L3 Real Sampling Engine (CENTER_EDGE only)
+**Goal:** Replace L3 placeholder selection with deterministic CENTER_EDGE.
+
+**Required Behavior**
+- Deterministic candidate ordering.
+- Ring-based selection around wafer center (implementation details allowed as long as deterministic).
+- Apply `WaferMapSpec.valid_die_mask` filtering.
+- Enforce `ProcessContext.min_sampling_points` / `max_sampling_points`.
+
+**Constraints**
+- Must not touch L4 or L5 behavior.
+- Must not require FE changes.
+
+**Tests**
+- L3 determinism test
+- Mask filtering test
+- Min/max enforcement test
+
+**Acceptance Criteria**
+- `/v1/sampling/preview` returns schema-correct `sampling_output`.
+- Deterministic outputs proven by tests.
+- FE M4/M5/M6 still works unchanged.
+
+---
+
+### PR-2 — L3 Policy Hardening (Warnings vs Errors)
+**Goal:** Make L3 error policy consistent and documented (still no schema change).
+
+**What to standardize**
+- When to return 200 + warnings:
+  - truncation to max
+  - edge constraints applied (if non-blocking per guide)
+- When to return 4xx ErrorResponse:
+  - disallowed strategy_id
+  - invalid payloads / invalid die coordinates
+  - cannot meet min_sampling_points after applying mask/constraints (if policy says blocking)
+
+**Tests**
+- Strategy not allowed → 4xx ErrorResponse
+- Too few points after filtering → policy-defined outcome (warning or error)
+- Invalid inputs → 4xx with stable error codes/messages (per baseline guide)
+
+**Acceptance Criteria**
+- L3 behavior is predictable and tested.
+- No changes to response schema.
+
+---
+
+### PR-3 — L4 Real Scoring Engine (Read-only)
+**Goal:** Replace placeholder scoring with real evaluation logic.
+
+**Required Behavior**
+- Compute `coverage_score`, `statistical_score`, `risk_alignment_score`, `overall_score`.
+- Emit warnings only; **never mutate** points.
+
+**Hard invariant**
+- L3 output must deep-equal before/after scoring:
+  - same array order
+  - same values
+  - same length
+
+**Tests**
+- No-mutation test (required)
+- Determinism test
+- Basic score sanity tests (bounded 0..1 if spec expects)
+
+**Acceptance Criteria**
+- `/v1/sampling/score` stable and deterministic.
+- No mutation invariant proven in tests.
+
+---
+
+### PR-4 — L5 Real Recipe Translation Engine
+**Goal:** Replace placeholder recipe generation with deterministic translation + constraints.
+
+**Required Behavior**
+- Convert `die_x/die_y` to `x_mm/y_mm` if contract/model requires.
+- Enforce tool constraints deterministically:
+  - `max_points_per_wafer`: deterministic truncation + warnings + translation_notes
+  - `edge_die_supported=false`: deterministic removal strategy + warnings + translation_notes
+- Output `ToolRecipe` exactly per schema.
+
+**Tests**
+- Conversion correctness (known pitch)
+- Deterministic truncation ordering
+- Constraint enforcement tests
+- E2E: preview → score → generate recipe (must pass)
+
+**Acceptance Criteria**
+- FE export works unchanged.
+- Same inputs → same recipe output.
+
+---
+
+### PR-5 — Catalog Realism (Optional / After v1 Core)
+**Goal:** Move from hardcoded catalog to static JSON files + validation.
+
+**Deliverables**
+- `backend/data/catalog/*.json` as canonical data
+- Loaders + validation (schema/shape)
+- Keep endpoints identical
+
+**Acceptance Criteria**
+- FE options remain populated.
+- No API changes.
+
+---
+
+## 3. Suggested Milestone Tags
+
+- `v1.0-pr0-test-harness`
+- `v1.1-l3-center-edge`
+- `v1.2-l3-policy`
+- `v1.3-l4-scoring`
+- `v1.4-l5-recipe`
+- `v1.5-catalog-data`
+
+---
+
+## 4. PR Review Checklist (BE)
+
+Every BE PR must answer:
+
+### Contract Safety
+- [ ] OpenAPI unchanged
+- [ ] No endpoint added/removed
+- [ ] No field rename / envelope change
+
+### Layer Boundaries
+- [ ] PR touches only the intended layer(s)
+- [ ] L4 no-mutation invariant preserved (if L4 touched)
+- [ ] L5 translation only (if L5 touched)
+
+### Determinism
+- [ ] No randomness / no time-based output
+- [ ] Determinism test added or still passing
+
+### Tests
+- [ ] Unit tests for new logic
+- [ ] E2E still green (or updated fixtures with justification)
+
+---
+
+## 5. Architect Gate Points
+
+Architect approval required for:
+- Any behavioral policy change (warning vs error) that changes user experience.
+- Any modification that could affect FE flow (even if schema stays same).
+- Any v1 proposal that implies contract changes.
+
+---
+
+## 6. Notes / v1 Proposals Handling
+
+If BE discovers a gap:
+- Create a GitHub issue tagged `proposal:v1`
+- Include:
+  - What’s missing
+  - Why it’s needed
+  - Impact on FE/BE
+  - Suggested solution
+- **Do not patch around it** in code without architect approval.
+
+---
+
+## 7. Definition of Done (BE v1)
+
+BE v1 is “done” when:
+- PR-0 to PR-4 completed and merged
+- E2E (preview → score → generate) passes deterministically
+- No contract drift
+- FE remains unchanged and works end-to-end

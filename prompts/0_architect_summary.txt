@@ -1,0 +1,126 @@
+Architect Work Summary (Logical View)
+1. Established the Problem Frame and Abstractions
+
+The architect first clarified what this system is and what it is not by defining:
+
+A layered responsibility model (L1–L5):
+
+L1: Wafer geometry & coordinate universe
+
+L2: Process context & intent
+
+L3: Sampling selection (decision layer)
+
+L4: Sampling evaluation (scoring only)
+
+L5: Tool-specific recipe translation
+
+Explicit non-responsibilities (e.g., L4 must never mutate L3)
+
+This eliminated ambiguity early and prevented algorithm/UI/tool coupling.
+
+2. Defined a Stable User-to-Architecture Mapping
+
+The architect ensured the Wizard UX is a projection of architecture, not an independent logic flow:
+
+Wizard steps mapped 1:1 to L1–L5
+
+Each step’s responsibility clearly constrained
+
+UI allowed to display downstream results but not decide them
+
+Result: FE can implement without inventing business logic.
+
+3. Locked a Contract-First Baseline
+
+Before any real backend logic was written, the architect:
+
+Defined OpenAPI (api/openapi.yaml) as the single source of truth
+
+Standardized:
+
+response envelopes
+
+warnings vs errors
+
+deterministic behavior expectations
+
+Ensured FE/BE alignment without runtime dependency
+
+This made later implementation replaceable rather than fragile.
+
+4. Produced an Implementation Scaffold (Not Features)
+
+The architect intentionally guided BE to produce a walking skeleton, not a full backend:
+
+Endpoints exist and run
+
+Schemas are enforced
+
+Layer boundaries are respected
+
+Logic is placeholder but deterministic
+
+Key point:
+
+The architect optimized for structural correctness, not algorithm completeness.
+
+This unblocked FE while keeping future change cheap.
+
+5. Explicitly Separated Roles and Agents
+
+The architect designed a multi-agent workflow:
+
+Claude (Architect): owns invariants and baseline
+
+Claude (BE): implements logic under strict rules
+
+Claude (Auditor): verifies alignment, not functionality
+
+Gemini (FE): consumes contracts only
+
+This avoided role confusion and prevented “helpful” violations.
+
+6. Introduced Architectural Gates Instead of Opinions
+
+Rather than subjective review, the architect enforced objective checks:
+
+Contract fidelity (OpenAPI)
+
+L4 no-mutation invariant
+
+Determinism
+
+Error model consistency
+
+This shifted correctness from discussion to automated enforcement.
+
+7. Validated the Skeleton via an Architect Audit
+
+When BE reported a “skeleton-only” implementation, the architect:
+
+Audited intent alignment (not algorithm quality)
+
+Classified gaps as:
+
+intentional skeleton
+
+acceptable borderline
+
+violations (none found)
+
+Explicitly approved FE export
+
+This confirmed the system is architecturally complete for v0.
+
+8. Positioned the Project for Parallel Execution
+
+At the current state, the architect has enabled:
+
+FE to start immediately without rework risk
+
+BE to begin real algorithm work incrementally
+
+Future v1 evolution without breaking contracts
+
+The architect intentionally delayed feature depth to preserve system stability.
