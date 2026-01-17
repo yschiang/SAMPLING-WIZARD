@@ -8,7 +8,7 @@ from ...models.sampling import (
 )
 from ...models.errors import SamplingError, ErrorResponse, ValidationError, ErrorCode
 from ..utils import get_deterministic_timestamp
-from ...engine.l3 import CenterEdgeStrategy
+from ...engines.l3 import get_strategy  # PR-B: Use registry dispatch
 from ...engine.l4 import SamplingScorer
 
 router = APIRouter()
@@ -38,8 +38,8 @@ async def preview_sampling(request: SamplingPreviewRequest):
         # PR-A: Route-level strategy allowlist enforcement
         validate_strategy_allowed(request)
 
-        # Use real L3 CENTER_EDGE strategy implementation
-        strategy = CenterEdgeStrategy()
+        # PR-B: Get strategy from registry by ID (no hardcoded strategy)
+        strategy = get_strategy(request.strategy.strategy_id)
 
         # Execute L3 sampling point selection with error handling
         sampling_output = strategy.select_points(request)
