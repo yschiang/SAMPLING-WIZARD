@@ -8,11 +8,13 @@ No framework, no DI, no dynamic loading - just a simple dict.
 from typing import Dict, Type, List
 from .base import SamplingStrategy
 from .strategies.center_edge import CenterEdgeStrategy
+from .strategies.edge_only import EdgeOnlyStrategy
 
 
 # Strategy registry: strategy_id -> strategy class
 _REGISTRY: Dict[str, Type[SamplingStrategy]] = {
     "CENTER_EDGE": CenterEdgeStrategy,
+    "EDGE_ONLY": EdgeOnlyStrategy,
 }
 
 
