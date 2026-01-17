@@ -6,19 +6,41 @@ from ...models.sampling import (
     SamplingScoreRequest,
     SamplingScoreResponse,
 )
-from ...models.errors import SamplingError, ErrorResponse
+from ...models.errors import SamplingError, ErrorResponse, ValidationError, ErrorCode
 from ..utils import get_deterministic_timestamp
 from ...engine.l3 import CenterEdgeStrategy
 from ...engine.l4 import SamplingScorer
 
 router = APIRouter()
 
+
+def validate_strategy_allowed(request: SamplingPreviewRequest) -> None:
+    """
+    Validate that the requested strategy_id is in the process context's allowed set.
+
+    Raises:
+        ValidationError: If strategy_id is not in allowed_strategy_set
+    """
+    strategy_id = request.strategy.strategy_id
+    allowed_strategies = request.process_context.allowed_strategy_set
+
+    if strategy_id not in allowed_strategies:
+        raise ValidationError(
+            ErrorCode.DISALLOWED_STRATEGY,
+            f"Strategy '{strategy_id}' is not allowed for this process context. "
+            f"Allowed strategies: {allowed_strategies}"
+        )
+
+
 @router.post("/preview", response_model=SamplingPreviewResponse)
 async def preview_sampling(request: SamplingPreviewRequest):
     try:
+        # PR-A: Route-level strategy allowlist enforcement
+        validate_strategy_allowed(request)
+
         # Use real L3 CENTER_EDGE strategy implementation
         strategy = CenterEdgeStrategy()
-        
+
         # Execute L3 sampling point selection with error handling
         sampling_output = strategy.select_points(request)
         
