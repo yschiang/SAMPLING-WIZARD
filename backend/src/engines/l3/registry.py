@@ -10,6 +10,7 @@ from .base import SamplingStrategy
 from .strategies.center_edge import CenterEdgeStrategy
 from .strategies.edge_only import EdgeOnlyStrategy
 from .strategies.grid_uniform import GridUniformStrategy
+from .strategies.zone_ring_n import ZoneRingNStrategy
 
 
 # Strategy registry: strategy_id -> strategy class
@@ -17,6 +18,7 @@ _REGISTRY: Dict[str, Type[SamplingStrategy]] = {
     "CENTER_EDGE": CenterEdgeStrategy,
     "EDGE_ONLY": EdgeOnlyStrategy,
     "GRID_UNIFORM": GridUniformStrategy,
+    "ZONE_RING_N": ZoneRingNStrategy,
 }
 
 
