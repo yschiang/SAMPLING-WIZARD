@@ -1,9 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { Cpu, Zap, Moon, Sun, Monitor } from 'lucide-react'
+import { Cpu, Zap } from 'lucide-react'
 import { ThemeProvider } from './components/ThemeProvider'
-import { useTheme } from './components/ThemeProvider'
 import { WizardProvider } from './context/WizardContext'
-import { Button } from './ui/Button'
 import Wizard from './pages/Wizard'
 import SelectTech from './pages/wizard-steps/SelectTech'
 import SelectProcessContext from './pages/wizard-steps/SelectProcessContext'
@@ -11,24 +9,6 @@ import SelectToolType from './pages/wizard-steps/SelectToolType'
 import SelectSamplingStrategy from './pages/wizard-steps/SelectSamplingStrategy'
 import PreviewSamplingAndScoring from './pages/wizard-steps/PreviewSamplingAndScoring'
 import GenerateAndReviewRecipe from './pages/wizard-steps/GenerateAndReviewRecipe'
-
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
-  
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setTheme(theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light')}
-      className="h-9 w-9"
-    >
-      {theme === 'light' && <Sun className="h-4 w-4" />}
-      {theme === 'dark' && <Moon className="h-4 w-4" />}
-      {theme === 'system' && <Monitor className="h-4 w-4" />}
-      <span className="sr-only">Toggle theme</span>
-    </Button>
-  )
-}
 
 function App() {
   return (
@@ -59,7 +39,6 @@ function App() {
                   <Zap className="h-3 w-3 text-accent" />
                   <span>v1.0.0</span>
                 </div>
-                <ThemeToggle />
               </div>
             </div>
           </div>
