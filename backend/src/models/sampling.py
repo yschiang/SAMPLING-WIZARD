@@ -2,6 +2,7 @@ from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
 from .base import DiePoint, Warning, WaferMapSpec
 from .catalog import ProcessContext, ToolProfile
+from .strategy_config import StrategyConfig
 
 class SamplingTrace(BaseModel):
     strategy_version: str
@@ -14,8 +15,17 @@ class SamplingOutput(BaseModel):
     trace: SamplingTrace
 
 class StrategySelection(BaseModel):
+    """
+    Strategy selection for sampling request.
+
+    v1.3 BREAKING CHANGE: Replaced `params` with `strategy_config`.
+
+    Fields:
+        strategy_id: Strategy identifier (e.g., "CENTER_EDGE")
+        strategy_config: Structured configuration (common + advanced)
+    """
     strategy_id: str
-    params: Optional[Dict[str, Any]] = None
+    strategy_config: Optional[StrategyConfig] = None
 
 class SamplingPreviewRequest(BaseModel):
     wafer_map_spec: WaferMapSpec

@@ -42,7 +42,14 @@ def create_test_request(**overrides):
         elif key == "allowed_strategy_set":
             base_request["process_context"]["allowed_strategy_set"] = value
         elif key == "strategy_params":
-            base_request["strategy"]["params"] = value
+            # v1.3: Use strategy_config.advanced instead of params
+            if base_request["strategy"].get("strategy_config") is None:
+                base_request["strategy"]["strategy_config"] = {"advanced": value}
+            elif "advanced" not in base_request["strategy"]["strategy_config"]:
+                base_request["strategy"]["strategy_config"]["advanced"] = value
+            else:
+                # Merge with existing advanced config
+                base_request["strategy"]["strategy_config"]["advanced"].update(value)
 
     # Convert dict to Pydantic models
     from backend.src.models.base import WaferMapSpec
