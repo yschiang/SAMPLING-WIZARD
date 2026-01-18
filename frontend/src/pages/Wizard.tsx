@@ -3,11 +3,11 @@ import WizardStepper from '../components/WizardStepper'
 
 const Wizard = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       <WizardStepper />
-      <div className="border-t pt-6">
+      <main className="animate-fade-in px-1">
         <Outlet />
-      </div>
+      </main>
     </div>
   )
 }

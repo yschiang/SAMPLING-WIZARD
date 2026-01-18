@@ -4,51 +4,14 @@ import { ChevronLeft, ChevronRight, Check, Zap, CircuitBoard, Settings, BarChart
 import { WizardContext } from '../context/WizardContext';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
-import { Card } from '../ui/Card';
 
 const steps = [
-  { 
-    path: 'select-tech', 
-    name: 'Technology Node', 
-    short: 'Tech',
-    description: 'Select semiconductor technology',
-    icon: Cpu
-  },
-  { 
-    path: 'select-process-context', 
-    name: 'Process Context', 
-    short: 'Process',
-    description: 'Define measurement context',
-    icon: Settings
-  },
-  { 
-    path: 'select-tool-type', 
-    name: 'Tool Selection', 
-    short: 'Tools',
-    description: 'Choose measurement tools',
-    icon: CircuitBoard
-  },
-  { 
-    path: 'select-sampling-strategy', 
-    name: 'Sampling Strategy', 
-    short: 'Strategy',
-    description: 'Configure sampling approach',
-    icon: Zap
-  },
-  { 
-    path: 'preview-sampling-and-scoring', 
-    name: 'Preview & Analysis', 
-    short: 'Preview',
-    description: 'Review and score results',
-    icon: BarChart3
-  },
-  { 
-    path: 'generate-and-review-recipe', 
-    name: 'Recipe Generation', 
-    short: 'Recipe',
-    description: 'Generate tool recipes',
-    icon: FileOutput
-  },
+  { path: 'select-tech', name: 'Technology', icon: Cpu },
+  { path: 'select-process-context', name: 'Process', icon: Settings },
+  { path: 'select-tool-type', name: 'Metrology', icon: CircuitBoard },
+  { path: 'select-sampling-strategy', name: 'Strategy', icon: Zap },
+  { path: 'preview-sampling-and-scoring', name: 'Analysis', icon: BarChart3 },
+  { path: 'generate-and-review-recipe', name: 'Deployment', icon: FileOutput },
 ];
 
 const WizardStepper = () => {
@@ -69,214 +32,92 @@ const WizardStepper = () => {
     }
   };
 
-  const handleStepClick = (stepNumber: number) => {
-    if (stepNumber <= state.currentStep) {
-      dispatch({ type: 'GO_TO_NEXT_STEP' });
-      // Set to the clicked step
-      const diff = stepNumber - state.currentStep;
-      for (let i = 0; i < Math.abs(diff); i++) {
-        if (diff > 0) {
-          dispatch({ type: 'GO_TO_NEXT_STEP' });
-        } else {
-          dispatch({ type: 'GO_TO_PREVIOUS_STEP' });
-        }
-      }
-      navigate(`/wizard/${steps[stepNumber - 1].path}`);
-    }
-  };
-
   const progressPercentage = ((state.currentStep - 1) / (steps.length - 1)) * 100;
 
   return (
-    <Card className="card-elevated p-6 space-y-8 animate-slide-up">
-      {/* Progress Overview */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h2 className="section text-lg">Sampling Workflow</h2>
-            <p className="muted">Step {state.currentStep} of {steps.length} • {Math.round(progressPercentage)}% Complete</p>
-          </div>
-          <Badge variant="secondary" className="mono text-xs px-3 py-1">
-            <Zap className="h-3 w-3 mr-1" />
-            Active
-          </Badge>
+    <div className="space-y-8">
+      {/* Informational Status Bar */}
+      <div className="flex items-center justify-between border-b border-border/50 pb-4 px-1">
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-foreground/80 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            Workflow Progress
+          </h2>
         </div>
         
-        {/* Progress Bar */}
-        <div className="relative">
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
+        <div className="flex items-center gap-6">
+          <div className="hidden md:flex flex-col items-end">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Completion</p>
+            <p className="text-sm font-bold tabular-nums italic">{Math.round(progressPercentage)}%</p>
+          </div>
+          <div className="h-8 w-px bg-border/50 hidden md:block" />
+          <Badge variant="outline" className="h-7 px-3 border-primary/20 bg-primary/5 text-primary font-black italic uppercase text-[10px] tracking-widest">
+            Step {state.currentStep} of {steps.length}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Progress Track - Strictly Informational */}
+      <div className="grid grid-cols-6 gap-2">
+        {steps.map((step, index) => {
+          const stepNumber = index + 1;
+          const isCompleted = stepNumber < state.currentStep;
+          const isCurrent = stepNumber === state.currentStep;
+          
+          return (
             <div 
-              className="h-full bg-gradient-primary transition-all duration-700 ease-out"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Step Navigation - Desktop */}
-      <div className="hidden lg:block">
-        <div className="grid grid-cols-6 gap-4">
-          {steps.map((step, index) => {
-            const stepNumber = index + 1;
-            const isCompleted = stepNumber < state.currentStep;
-            const isCurrent = stepNumber === state.currentStep;
-            const isClickable = stepNumber <= state.currentStep;
-            const Icon = step.icon;
-            
-            return (
-              <div 
-                key={step.path} 
-                className={`
-                  group relative p-4 rounded-xl border-2 transition-all duration-200
-                  ${isClickable ? 'cursor-pointer' : 'cursor-not-allowed'}
-                  ${isCompleted 
-                    ? 'bg-primary/5 border-primary/30 hover:border-primary/50' 
-                    : isCurrent 
-                      ? 'bg-accent/5 border-accent shadow-lg ring-2 ring-accent/20'
-                      : 'border-muted hover:border-muted-foreground/30'
-                  }
-                `}
-                onClick={() => isClickable && handleStepClick(stepNumber)}
-              >
-                {/* Step Number/Check */}
-                <div className={`
-                  flex h-8 w-8 items-center justify-center rounded-lg mb-3 text-xs font-semibold transition-colors
-                  ${isCompleted 
-                    ? 'bg-primary text-primary-foreground' 
-                    : isCurrent 
-                      ? 'bg-accent text-accent-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  }
-                `}>
-                  {isCompleted ? <Check className="h-4 w-4" /> : stepNumber}
-                </div>
-                
-                {/* Icon */}
-                <Icon className={`h-5 w-5 mb-2 transition-colors ${
-                  isCurrent ? 'text-accent' : isCompleted ? 'text-primary' : 'text-muted-foreground'
-                }`} />
-                
-                {/* Step Name */}
-                <div className={`font-medium text-sm mb-1 ${
-                  isCurrent ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
-                }`}>
-                  {step.short}
-                </div>
-                
-                {/* Description */}
-                <div className="text-xs text-muted-foreground line-clamp-2">
-                  {step.description}
-                </div>
-                
-                {/* Active Indicator */}
-                {isCurrent && (
-                  <div className="absolute -top-1 -right-1">
-                    <div className="h-3 w-3 bg-accent rounded-full animate-glow" />
-                  </div>
-                )}
+              key={step.path} 
+              className={`
+                relative p-3 rounded-lg border transition-all flex flex-col items-center text-center
+                ${isCompleted ? 'bg-muted/30 border-transparent opacity-60' : ''}
+                ${isCurrent ? 'bg-background border-primary shadow-sm ring-1 ring-primary/10' : 'bg-muted/10 border-transparent opacity-40'}
+              `}
+            >
+              <div className={`
+                flex h-6 w-6 items-center justify-center rounded-full mb-2 text-[10px] font-black transition-colors
+                ${isCompleted ? 'bg-success text-success-foreground' : isCurrent ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}
+              `}>
+                {isCompleted ? <Check className="h-3 w-3" /> : stepNumber}
               </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Step Navigation - Mobile & Tablet */}
-      <div className="lg:hidden">
-        <div className="flex items-center space-x-4 overflow-x-auto pb-4">
-          {steps.map((step, index) => {
-            const stepNumber = index + 1;
-            const isCompleted = stepNumber < state.currentStep;
-            const isCurrent = stepNumber === state.currentStep;
-            const Icon = step.icon;
-            
-            return (
-              <div key={step.path} className="flex items-center shrink-0">
-                <div className="flex flex-col items-center space-y-2 min-w-[80px]">
-                  {/* Step Circle */}
-                  <div className={`
-                    relative flex h-12 w-12 items-center justify-center rounded-xl border-2 transition-all
-                    ${isCompleted 
-                      ? 'bg-primary border-primary text-primary-foreground' 
-                      : isCurrent 
-                        ? 'bg-accent/10 border-accent text-accent ring-2 ring-accent/20'
-                        : 'border-muted text-muted-foreground'
-                    }
-                  `}>
-                    {isCompleted ? (
-                      <Check className="h-5 w-5" />
-                    ) : (
-                      <Icon className="h-5 w-5" />
-                    )}
-                    {isCurrent && (
-                      <div className="absolute -top-1 -right-1 h-3 w-3 bg-accent rounded-full animate-glow" />
-                    )}
-                  </div>
-                  
-                  {/* Step Name */}
-                  <div className="text-center">
-                    <div className={`text-xs font-medium ${
-                      isCurrent ? 'text-foreground' : 'text-muted-foreground'
-                    }`}>
-                      {step.short}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Connector Line */}
-                {index < steps.length - 1 && (
-                  <div className={`h-0.5 w-8 mx-3 transition-colors ${
-                    isCompleted ? 'bg-primary' : 'bg-muted'
-                  }`} />
-                )}
+              
+              <div className={`font-black text-[9px] uppercase tracking-widest leading-tight ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`}>
+                {step.name}
               </div>
-            );
-          })}
-        </div>
+              
+              {isCurrent && (
+                <div className="absolute top-1.5 right-1.5 h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Current Step Info */}
-      <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border">
-        <div className="flex items-center space-x-3">
-          {(() => {
-            const CurrentIcon = steps[state.currentStep - 1].icon;
-            return <CurrentIcon className="h-5 w-5 text-accent" />;
-          })()}
-          <div>
-            <div className="font-semibold text-sm">{steps[state.currentStep - 1].name}</div>
-            <div className="text-xs text-muted-foreground">{steps[state.currentStep - 1].description}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="flex items-center justify-between pt-6 border-t">
+      {/* Primary Workflow Navigation */}
+      <div className="flex items-center justify-between pt-2">
         <Button
           variant="outline"
           onClick={handleBack}
-          disabled={state.currentStep === 1}
-          className="flex items-center gap-2 px-6"
+          disabled={state.currentStep === 1 || state.isLoading}
+          className="h-10 px-6 border-border/50 hover:bg-muted text-xs font-bold uppercase tracking-widest transition-all active:scale-95"
         >
-          <ChevronLeft className="h-4 w-4" />
-          Previous
+          <ChevronLeft className="h-3.5 w-3.5 mr-2" /> Previous
         </Button>
         
-        <div className="flex items-center space-x-2 text-sm text-muted-foreground mono">
-          <span>{state.currentStep}</span>
-          <span>/</span>
-          <span>{steps.length}</span>
+        <div className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.3em]">
+          Stage {state.currentStep} of {steps.length}
         </div>
         
         <Button
           onClick={handleNext}
-          disabled={state.currentStep === steps.length}
-          className="flex items-center gap-2 px-6 bg-gradient-primary hover:opacity-90"
+          disabled={state.currentStep === steps.length || state.isLoading}
+          className="h-10 px-8 bg-primary hover:bg-primary/90 text-xs font-bold uppercase tracking-widest shadow-lg shadow-primary/10 transition-all active:scale-95"
         >
-          {state.currentStep === steps.length ? 'Complete' : 'Continue'}
-          <ChevronRight className="h-4 w-4" />
+          {state.isLoading ? 'Processing...' : 'Continue'} <ChevronRight className="h-3.5 w-3.5 ml-2" />
         </Button>
       </div>
-    </Card>
+    </div>
   );
 };
 
 export default WizardStepper;
+

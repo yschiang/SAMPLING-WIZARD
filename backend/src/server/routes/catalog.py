@@ -1,4 +1,6 @@
 from typing import List
+import json
+from pathlib import Path
 from fastapi import APIRouter, HTTPException, Query
 from ...models.catalog import (
     TechListResponse,
@@ -11,6 +13,27 @@ from ...models.catalog import (
 from ...models.enums import Mode
 
 router = APIRouter()
+
+# Load strategies catalog
+_STRATEGIES_CATALOG_PATH = Path(__file__).parent.parent.parent / "data" / "catalog" / "strategies.json"
+
+def get_enabled_strategies() -> List[str]:
+    """
+    Load and return list of enabled strategy IDs from catalog.
+
+    Returns:
+        List of enabled strategy_id strings
+    """
+    try:
+        with open(_STRATEGIES_CATALOG_PATH, 'r') as f:
+            catalog = json.load(f)
+            return [s["strategy_id"] for s in catalog["strategies"] if s.get("enabled", False)]
+    except FileNotFoundError:
+        # Fallback to default if catalog file not found
+        return ["CENTER_EDGE"]
+    except Exception as e:
+        # Fallback to default if malformed
+        return ["CENTER_EDGE"]
 
 @router.get("/techs", response_model=TechListResponse)
 async def list_techs():
@@ -51,6 +74,9 @@ async def get_process_context(
     min_points = 5 if criticality == "HIGH" else 3
     max_points = 25 if mode == "INLINE" else 50
 
+    # Get enabled strategies from catalog
+    enabled_strategies = get_enabled_strategies()
+
     return ProcessContextResponse(process_context={
         "process_step": step,
         "measurement_intent": intent,
@@ -58,7 +84,7 @@ async def get_process_context(
         "criticality": criticality,
         "min_sampling_points": min_points,
         "max_sampling_points": max_points,
-        "allowed_strategy_set": ["CENTER_EDGE"],
+        "allowed_strategy_set": enabled_strategies,
         "version": "1.0"
     })
 

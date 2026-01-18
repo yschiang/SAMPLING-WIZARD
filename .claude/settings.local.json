@@ -2,7 +2,18 @@
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(cp:*)",
+      "Bash(git commit:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(pip install:*)",
+      "Bash(python3 -m pytest:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(tree:*)",
+      "Bash(find:*)",
+      "Bash(git mv:*)",
+      "Bash(python -c:*)"
     ],
     "deny": [],
     "ask": []

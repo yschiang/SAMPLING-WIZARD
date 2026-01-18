@@ -1,0 +1,28 @@
+{
+  "strategies": [
+    {
+      "strategy_id": "CENTER_EDGE",
+      "name": "Center-Edge",
+      "description": "Optimized for detecting radial process variation and edge-of-wafer instability.",
+      "enabled": true
+    },
+    {
+      "strategy_id": "GRID_UNIFORM",
+      "name": "Grid Uniform",
+      "description": "Standard baseline distribution for general process monitoring and uniformity control.",
+      "enabled": true
+    },
+    {
+      "strategy_id": "EDGE_ONLY",
+      "name": "Edge Only",
+      "description": "High-density focus on the wafer perimeter to isolate bevel and clamp-related defects.",
+      "enabled": true
+    },
+    {
+      "strategy_id": "ZONE_RING_N",
+      "name": "Zone Ring N",
+      "description": "Concentric ring distribution for systematic analysis of rotational symmetry variations.",
+      "enabled": true
+    }
+  ]
+}
