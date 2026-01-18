@@ -13,7 +13,8 @@
       "Bash(tree:*)",
       "Bash(find:*)",
       "Bash(git mv:*)",
-      "Bash(python -c:*)"
+      "Bash(python -c:*)",
+      "Bash(gh issue create:*)"
     ],
     "deny": [],
     "ask": []

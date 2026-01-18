@@ -1,8 +1,4 @@
-import { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Loader2, Check, FileCode, Map, List, BarChart3, AlertTriangle, ArrowLeft } from 'lucide-react';
-import { WizardContext } from '../../context/WizardContext';
-import WaferMapViewer from '../../components/WaferMapViewer';
+import WaferMap from '../../components/WaferMap/WaferMap';
 import { generateRecipe } from '../../api/catalog';
 import { Card, CardContent } from '../../ui/Card';
 import { Button } from '../../ui/Button';
@@ -83,11 +79,15 @@ const PreviewSamplingAndScoring = () => {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         {/* Visualization - PRIMARY */}
         <div className="xl:col-span-7 space-y-6">
-          <Card className="card-elevated overflow-hidden bg-muted/5">
-            <CardContent className="p-8 flex items-center justify-center min-h-[500px]">
-              <div className="w-full max-w-[480px] aspect-square rounded-full bg-white shadow-inner p-6 border border-border/50">
-                <WaferMapViewer waferMapSpec={waferMapSpec} samplingOutput={samplingOutput} />
-              </div>
+          <Card className="card-elevated overflow-hidden bg-white">
+            <CardContent className="p-6 min-h-[500px] flex flex-col">
+              {waferMapSpec && (
+                <WaferMap 
+                  waferMapSpec={waferMapSpec} 
+                  samplingOutput={samplingOutput}
+                  className="flex-1 w-full"
+                />
+              )}
             </CardContent>
           </Card>
           
