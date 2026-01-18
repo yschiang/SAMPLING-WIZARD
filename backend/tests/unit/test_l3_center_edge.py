@@ -10,7 +10,7 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../'))
 
-from backend.src.engine.l3 import CenterEdgeStrategy
+from backend.src.engines.l3.strategies.center_edge import CenterEdgeStrategy
 from backend.src.models.base import WaferMapSpec, ValidDieMask, DiePoint
 from backend.src.models.catalog import ProcessContext, ToolProfile, RecipeFormat
 from backend.src.models.sampling import SamplingPreviewRequest, StrategySelection

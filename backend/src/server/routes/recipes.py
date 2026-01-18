@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from ...models.recipes import GenerateRecipeRequest, GenerateRecipeResponse
 from ...models.base import Warning
 from ..utils import get_deterministic_id
-from ...engine.l5 import RecipeTranslator
+from ...engines.l5 import RecipeTranslator
 
 router = APIRouter()
 

@@ -8,7 +8,7 @@ import pytest
 import json
 import copy
 from pathlib import Path
-from src.engine.l4.scorer import SamplingScorer
+from src.engines.l4.scorer import SamplingScorer
 from src.models.base import WaferMapSpec, ValidDieMask, DiePoint
 from src.models.catalog import ProcessContext, ToolProfile
 from src.models.sampling import SamplingScoreRequest, SamplingOutput, SamplingTrace

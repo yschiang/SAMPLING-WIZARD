@@ -8,7 +8,7 @@ import pytest
 import json
 import copy
 from pathlib import Path
-from src.engine.l3.center_edge import CenterEdgeStrategy
+from src.engines.l3.strategies.center_edge import CenterEdgeStrategy
 from src.models.base import WaferMapSpec, ValidDieMask, DiePoint
 from src.models.catalog import ProcessContext, ToolProfile, RecipeFormat
 from src.models.sampling import SamplingPreviewRequest, StrategySelection

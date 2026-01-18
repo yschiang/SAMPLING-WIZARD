@@ -8,7 +8,7 @@ import pytest
 import json
 import copy
 from pathlib import Path
-from src.engine.l5.translator import RecipeTranslator
+from src.engines.l5.translator import RecipeTranslator
 from src.models.base import WaferMapSpec, ValidDieMask, DiePoint, Warning
 from src.models.catalog import ProcessContext, ToolProfile, RecipeFormat
 from src.models.sampling import SamplingOutput, SamplingTrace

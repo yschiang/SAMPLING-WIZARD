@@ -9,7 +9,7 @@ from ...models.sampling import (
 from ...models.errors import SamplingError, ErrorResponse, ValidationError, ErrorCode
 from ..utils import get_deterministic_timestamp
 from ...engines.l3 import get_strategy  # PR-B: Use registry dispatch
-from ...engine.l4 import SamplingScorer
+from ...engines.l4 import SamplingScorer
 
 router = APIRouter()
 
