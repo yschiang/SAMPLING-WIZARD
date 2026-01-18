@@ -10,6 +10,9 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../'))
 
+# Enable deterministic mode for IDs and timestamps
+os.environ["TEST_DETERMINISTIC_TIMESTAMPS"] = "true"
+
 from fastapi.testclient import TestClient
 from backend.src.server.main import app
 

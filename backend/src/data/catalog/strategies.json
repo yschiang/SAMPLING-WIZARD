@@ -4,25 +4,243 @@
       "strategy_id": "CENTER_EDGE",
       "name": "Center-Edge",
       "description": "Optimized for detecting radial process variation and edge-of-wafer instability.",
-      "enabled": true
+      "enabled": true,
+      "default_target_point_count": 20,
+      "config_schema": {
+        "common": {
+          "target_point_count": {
+            "type": "integer",
+            "default": null,
+            "range": [1, null],
+            "description": "Target number of sampling points (null = strategy default)",
+            "ui_hint": "number_input"
+          },
+          "edge_exclusion_mm": {
+            "type": "float",
+            "default": 0.0,
+            "range": [0.0, null],
+            "description": "Exclude edge zone (mm)",
+            "ui_hint": "slider"
+          },
+          "rotation_seed": {
+            "type": "integer",
+            "default": null,
+            "range": [0, 359],
+            "description": "Rotation offset (degrees, null = none)",
+            "ui_hint": "number_input"
+          },
+          "deterministic_seed": {
+            "type": "integer",
+            "default": null,
+            "range": [0, null],
+            "description": "RNG seed for stochastic ops (null = deterministic default)",
+            "ui_hint": "number_input"
+          }
+        },
+        "advanced": {
+          "center_weight": {
+            "type": "float",
+            "default": 0.2,
+            "range": [0.0, 1.0],
+            "description": "Fraction allocated to center region",
+            "ui_hint": "slider"
+          },
+          "ring_count": {
+            "type": "integer",
+            "default": 3,
+            "range": [2, 5],
+            "description": "Number of concentric rings",
+            "ui_hint": "select",
+            "options": [2, 3, 4, 5]
+          },
+          "radial_spacing": {
+            "type": "enum",
+            "default": "UNIFORM",
+            "options": ["UNIFORM", "EXPONENTIAL"],
+            "description": "Ring spacing distribution",
+            "ui_hint": "radio"
+          }
+        }
+      }
     },
     {
       "strategy_id": "GRID_UNIFORM",
       "name": "Grid Uniform",
       "description": "Standard baseline distribution for general process monitoring and uniformity control.",
-      "enabled": true
+      "enabled": true,
+      "default_target_point_count": 30,
+      "config_schema": {
+        "common": {
+          "target_point_count": {
+            "type": "integer",
+            "default": null,
+            "range": [1, null],
+            "description": "Target number of sampling points (null = strategy default)",
+            "ui_hint": "number_input"
+          },
+          "edge_exclusion_mm": {
+            "type": "float",
+            "default": 0.0,
+            "range": [0.0, null],
+            "description": "Exclude edge zone (mm)",
+            "ui_hint": "slider"
+          },
+          "rotation_seed": {
+            "type": "integer",
+            "default": null,
+            "range": [0, 359],
+            "description": "Rotation offset (degrees, null = none)",
+            "ui_hint": "number_input"
+          },
+          "deterministic_seed": {
+            "type": "integer",
+            "default": null,
+            "range": [0, null],
+            "description": "RNG seed for stochastic ops (null = deterministic default)",
+            "ui_hint": "number_input"
+          }
+        },
+        "advanced": {
+          "grid_pitch_mm": {
+            "type": "float",
+            "default": null,
+            "range": [0.0, null],
+            "description": "Grid spacing in mm (null = auto-derive from die pitch)",
+            "ui_hint": "number_input"
+          },
+          "jitter_ratio": {
+            "type": "float",
+            "default": 0.0,
+            "range": [0.0, 0.3],
+            "description": "Deterministic sub-die randomization factor (requires deterministic_seed if > 0)",
+            "ui_hint": "slider"
+          },
+          "grid_alignment": {
+            "type": "enum",
+            "default": "CENTER",
+            "options": ["CENTER", "CORNER"],
+            "description": "Grid alignment mode",
+            "ui_hint": "radio"
+          }
+        }
+      }
     },
     {
       "strategy_id": "EDGE_ONLY",
       "name": "Edge Only",
       "description": "High-density focus on the wafer perimeter to isolate bevel and clamp-related defects.",
-      "enabled": true
+      "enabled": true,
+      "default_target_point_count": 15,
+      "config_schema": {
+        "common": {
+          "target_point_count": {
+            "type": "integer",
+            "default": null,
+            "range": [1, null],
+            "description": "Target number of sampling points (null = strategy default)",
+            "ui_hint": "number_input"
+          },
+          "edge_exclusion_mm": {
+            "type": "float",
+            "default": 0.0,
+            "range": [0.0, null],
+            "description": "Exclude edge zone (mm)",
+            "ui_hint": "slider"
+          },
+          "rotation_seed": {
+            "type": "integer",
+            "default": null,
+            "range": [0, 359],
+            "description": "Rotation offset (degrees, null = none)",
+            "ui_hint": "number_input"
+          },
+          "deterministic_seed": {
+            "type": "integer",
+            "default": null,
+            "range": [0, null],
+            "description": "RNG seed for stochastic ops (null = deterministic default)",
+            "ui_hint": "number_input"
+          }
+        },
+        "advanced": {
+          "edge_band_width_mm": {
+            "type": "float",
+            "default": 10.0,
+            "range": [5.0, 50.0],
+            "description": "Width of edge sampling zone in mm",
+            "ui_hint": "slider"
+          },
+          "angular_spacing_deg": {
+            "type": "float",
+            "default": 45.0,
+            "range": [15.0, 90.0],
+            "description": "Target angular spacing between points in degrees",
+            "ui_hint": "slider"
+          },
+          "prioritize_corners": {
+            "type": "boolean",
+            "default": true,
+            "description": "Prioritize corner regions for edge sampling",
+            "ui_hint": "checkbox"
+          }
+        }
+      }
     },
     {
       "strategy_id": "ZONE_RING_N",
       "name": "Zone Ring N",
       "description": "Concentric ring distribution for systematic analysis of rotational symmetry variations.",
-      "enabled": true
+      "enabled": true,
+      "default_target_point_count": 25,
+      "config_schema": {
+        "common": {
+          "target_point_count": {
+            "type": "integer",
+            "default": null,
+            "range": [1, null],
+            "description": "Target number of sampling points (null = strategy default)",
+            "ui_hint": "number_input"
+          },
+          "edge_exclusion_mm": {
+            "type": "float",
+            "default": 0.0,
+            "range": [0.0, null],
+            "description": "Exclude edge zone (mm)",
+            "ui_hint": "slider"
+          },
+          "rotation_seed": {
+            "type": "integer",
+            "default": null,
+            "range": [0, 359],
+            "description": "Rotation offset (degrees, null = none)",
+            "ui_hint": "number_input"
+          },
+          "deterministic_seed": {
+            "type": "integer",
+            "default": null,
+            "range": [0, null],
+            "description": "RNG seed for stochastic ops (null = deterministic default)",
+            "ui_hint": "number_input"
+          }
+        },
+        "advanced": {
+          "num_rings": {
+            "type": "integer",
+            "default": 3,
+            "range": [2, 10],
+            "description": "Number of concentric rings (N)",
+            "ui_hint": "select",
+            "options": [2, 3, 4, 5, 6, 7, 8, 9, 10]
+          },
+          "allocation_mode": {
+            "type": "enum",
+            "default": "AREA_PROPORTIONAL",
+            "options": ["AREA_PROPORTIONAL", "UNIFORM", "EDGE_HEAVY"],
+            "description": "Point allocation mode across rings",
+            "ui_hint": "radio"
+          }
+        }
+      }
     }
   ]
 }

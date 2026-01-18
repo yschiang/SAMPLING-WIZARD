@@ -119,7 +119,7 @@ class ZoneRingNStrategy(SamplingStrategy):
 
     def _get_num_rings(self, request: SamplingPreviewRequest) -> int:
         """
-        Get number of rings from strategy params or use default.
+        Get number of rings from strategy config (v1.3) or use default.
 
         Args:
             request: Sampling preview request
@@ -127,8 +127,11 @@ class ZoneRingNStrategy(SamplingStrategy):
         Returns:
             Number of rings (default 3)
         """
-        if request.strategy.params and 'num_rings' in request.strategy.params:
-            num_rings = request.strategy.params['num_rings']
+        # v1.3: Access via strategy_config.advanced
+        if (request.strategy.strategy_config and
+            request.strategy.strategy_config.advanced and
+            'num_rings' in request.strategy.strategy_config.advanced):
+            num_rings = request.strategy.strategy_config.advanced['num_rings']
 
             # Validate num_rings
             if not isinstance(num_rings, int) or num_rings < 1:
