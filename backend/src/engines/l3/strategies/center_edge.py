@@ -5,12 +5,14 @@ Deterministic ring-based selection around wafer center with edge emphasis.
 """
 
 import math
-from typing import List, Set, Tuple
+from typing import List, Set, Tuple, Optional
 from ..base import SamplingStrategy
 from ....models.base import DiePoint
 from ....models.sampling import SamplingOutput, SamplingTrace, SamplingPreviewRequest
 from ....models.errors import ValidationError, ConstraintError, ErrorCode, WarningCode
+from ....models.strategy_config import CommonStrategyConfig
 from ....server.utils import get_deterministic_timestamp
+from ..common import apply_edge_exclusion, get_rotation_offset, apply_rotation_to_angle
 
 
 class CenterEdgeStrategy(SamplingStrategy):
@@ -47,18 +49,44 @@ class CenterEdgeStrategy(SamplingStrategy):
         # Validate input parameters
         self._validate_request_parameters(request)
 
-        # Generate candidate points in deterministic ring order
-        candidates = self._generate_ring_candidates(request.wafer_map_spec)
+        # Get common config (v1.3)
+        common_config = self._get_common_config(request)
+
+        # Get rotation offset (v1.3)
+        rotation_offset = get_rotation_offset(common_config.rotation_seed)
+
+        # Generate candidate points in deterministic ring order (v1.3: with rotation)
+        candidates = self._generate_ring_candidates(request.wafer_map_spec, rotation_offset)
 
         # Apply wafer map valid die mask filtering
         valid_candidates = self._apply_die_mask(candidates, request.wafer_map_spec)
+
+        # Apply additional edge exclusion from common config (v1.3)
+        if common_config.edge_exclusion_mm > 0:
+            valid_candidates = apply_edge_exclusion(
+                valid_candidates,
+                request.wafer_map_spec,
+                common_config.edge_exclusion_mm
+            )
+
+        # Calculate target count (v1.3: use common config if provided)
+        if common_config.target_point_count is not None:
+            target_count = min(
+                common_config.target_point_count,
+                request.process_context.max_sampling_points,
+                request.tool_profile.max_points_per_wafer
+            )
+        else:
+            target_count = min(
+                request.process_context.max_sampling_points,
+                request.tool_profile.max_points_per_wafer
+            )
 
         # Apply sampling constraints with error handling
         selected_points = self._apply_sampling_constraints_with_validation(
             valid_candidates,
             request.process_context.min_sampling_points,
-            min(request.process_context.max_sampling_points,
-                request.tool_profile.max_points_per_wafer)
+            target_count
         )
 
         # Generate trace
@@ -73,7 +101,19 @@ class CenterEdgeStrategy(SamplingStrategy):
             trace=trace
         )
 
-    def _generate_ring_candidates(self, wafer_spec) -> List[DiePoint]:
+    def _get_common_config(self, request: SamplingPreviewRequest) -> CommonStrategyConfig:
+        """
+        Extract common configuration from strategy_config (v1.3).
+
+        Returns:
+            CommonStrategyConfig with defaults for unspecified fields
+        """
+        if request.strategy.strategy_config and request.strategy.strategy_config.common:
+            return request.strategy.strategy_config.common
+        # Return default CommonStrategyConfig if not provided
+        return CommonStrategyConfig()
+
+    def _generate_ring_candidates(self, wafer_spec, rotation_offset: float = 0.0) -> List[DiePoint]:
         """
         Generate candidate sampling points in deterministic ring order.
 
@@ -98,12 +138,12 @@ class CenterEdgeStrategy(SamplingStrategy):
 
         # Generate rings 1 to max_ring
         for ring in range(1, max_ring + 1):
-            ring_points = self._generate_ring_points(ring)
+            ring_points = self._generate_ring_points(ring, rotation_offset)
             candidates.extend(ring_points)
 
         return candidates
 
-    def _generate_ring_points(self, ring: int) -> List[DiePoint]:
+    def _generate_ring_points(self, ring: int, rotation_offset: float = 0.0) -> List[DiePoint]:
         """
         Generate points for a specific ring in deterministic order.
 
@@ -148,8 +188,17 @@ class CenterEdgeStrategy(SamplingStrategy):
                         if point not in points:
                             additional_points.append(point)
 
-            # Sort additional points by angle for deterministic ordering
-            additional_points.sort(key=lambda p: (math.atan2(p.die_y, p.die_x), p.die_x, p.die_y))
+            # Sort additional points by angle for deterministic ordering (v1.3: with rotation)
+            def angle_key(p: DiePoint) -> tuple:
+                angle_rad = math.atan2(p.die_y, p.die_x)
+                angle_deg = math.degrees(angle_rad)
+                if angle_deg < 0:
+                    angle_deg += 360.0
+                # Apply rotation offset
+                rotated_angle = apply_rotation_to_angle(angle_deg, rotation_offset)
+                return (rotated_angle, p.die_x, p.die_y)
+
+            additional_points.sort(key=angle_key)
             points.extend(additional_points)
 
         return points
