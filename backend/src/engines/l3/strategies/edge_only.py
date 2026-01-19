@@ -5,12 +5,14 @@ Deterministic edge-focused selection prioritizing outermost wafer dies.
 """
 
 import math
-from typing import List
+from typing import List, Optional
 from ..base import SamplingStrategy
 from ....models.base import DiePoint
 from ....models.sampling import SamplingOutput, SamplingTrace, SamplingPreviewRequest
 from ....models.errors import ValidationError, ConstraintError, ErrorCode
+from ....models.strategy_config import CommonStrategyConfig
 from ....server.utils import get_deterministic_timestamp
+from ..common import apply_edge_exclusion, get_rotation_offset, apply_rotation_to_angle
 
 
 class EdgeOnlyStrategy(SamplingStrategy):
@@ -52,18 +54,44 @@ class EdgeOnlyStrategy(SamplingStrategy):
         # Validate input parameters
         self._validate_request_parameters(request)
 
-        # Generate candidate points in deterministic order (edge first)
-        candidates = self._generate_edge_candidates(request.wafer_map_spec)
+        # Get common config (v1.3)
+        common_config = self._get_common_config(request)
+
+        # Get rotation offset (v1.3)
+        rotation_offset = get_rotation_offset(common_config.rotation_seed)
+
+        # Generate candidate points in deterministic order (edge first, v1.3: with rotation)
+        candidates = self._generate_edge_candidates(request.wafer_map_spec, rotation_offset)
 
         # Apply wafer map valid die mask filtering
         valid_candidates = self._apply_die_mask(candidates, request.wafer_map_spec)
+
+        # Apply additional edge exclusion from common config (v1.3)
+        if common_config.edge_exclusion_mm > 0:
+            valid_candidates = apply_edge_exclusion(
+                valid_candidates,
+                request.wafer_map_spec,
+                common_config.edge_exclusion_mm
+            )
+
+        # Calculate target count (v1.3: use common config if provided)
+        if common_config.target_point_count is not None:
+            target_count = min(
+                common_config.target_point_count,
+                request.process_context.max_sampling_points,
+                request.tool_profile.max_points_per_wafer
+            )
+        else:
+            target_count = min(
+                request.process_context.max_sampling_points,
+                request.tool_profile.max_points_per_wafer
+            )
 
         # Apply sampling constraints with error handling
         selected_points = self._apply_sampling_constraints_with_validation(
             valid_candidates,
             request.process_context.min_sampling_points,
-            min(request.process_context.max_sampling_points,
-                request.tool_profile.max_points_per_wafer)
+            target_count
         )
 
         # Generate trace
@@ -78,7 +106,19 @@ class EdgeOnlyStrategy(SamplingStrategy):
             trace=trace
         )
 
-    def _generate_edge_candidates(self, wafer_spec) -> List[DiePoint]:
+    def _get_common_config(self, request: SamplingPreviewRequest) -> CommonStrategyConfig:
+        """
+        Extract common configuration from strategy_config (v1.3).
+
+        Returns:
+            CommonStrategyConfig with defaults for unspecified fields
+        """
+        if request.strategy.strategy_config and request.strategy.strategy_config.common:
+            return request.strategy.strategy_config.common
+        # Return default CommonStrategyConfig if not provided
+        return CommonStrategyConfig()
+
+    def _generate_edge_candidates(self, wafer_spec, rotation_offset: float = 0.0) -> List[DiePoint]:
         """
         Generate candidate sampling points with edge-first ordering.
 
@@ -113,14 +153,21 @@ class EdgeOnlyStrategy(SamplingStrategy):
                 if distance_mm <= wafer_radius_mm:
                     candidates.append(DiePoint(die_x=x, die_y=y))
 
-        # Sort by distance (descending - edge first), then by angle, then by coordinates
+        # Sort by distance (descending - edge first), then by angle (v1.3: with rotation), then by coordinates
         def edge_first_key(p: DiePoint) -> tuple:
             x_mm = p.die_x * die_pitch_x
             y_mm = p.die_y * die_pitch_y
             dist = math.sqrt(x_mm**2 + y_mm**2)
-            angle = math.atan2(y_mm, x_mm)
+            # Calculate base angle in degrees
+            angle_rad = math.atan2(y_mm, x_mm)
+            angle_deg = math.degrees(angle_rad)
+            # Normalize to [0, 360)
+            if angle_deg < 0:
+                angle_deg += 360.0
+            # Apply rotation offset (v1.3)
+            rotated_angle = apply_rotation_to_angle(angle_deg, rotation_offset)
             # Negative distance for descending order (edge first)
-            return (-dist, angle, p.die_x, p.die_y)
+            return (-dist, rotated_angle, p.die_x, p.die_y)
 
         return sorted(candidates, key=edge_first_key)
 
