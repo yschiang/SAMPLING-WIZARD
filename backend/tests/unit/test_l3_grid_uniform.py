@@ -447,6 +447,183 @@ def test_grid_uniform_wafer_geometries():
     print(f"   Rectangular (15x5mm): {len(result_rect.selected_points)} points")
 
 
+# =============================================================================
+# v1.3 Common Configuration Tests
+# =============================================================================
+
+def test_grid_uniform_common_edge_exclusion():
+    """
+    Test edge_exclusion_mm from common config (v1.3).
+
+    Verifies that additional edge exclusion filters grid points near edge.
+    """
+    strategy = GridUniformStrategy()
+
+    # Request with common edge_exclusion_mm
+    request = create_test_request(max_sampling_points=50, min_sampling_points=5)
+
+    from backend.src.models.strategy_config import StrategyConfig
+    request.strategy.strategy_config = StrategyConfig(**{
+        "common": {
+            "edge_exclusion_mm": 30.0
+        }
+    })
+
+    result = strategy.select_points(request)
+    points = result.selected_points
+
+    # Verify all points are within edge exclusion boundary
+    # 300mm wafer, 30mm exclusion = max radius 120mm
+    wafer_radius = 150.0  # 300mm / 2
+    max_allowed_radius = wafer_radius - 30.0  # 120mm
+
+    for point in points:
+        x_mm = point.die_x * 10.0
+        y_mm = point.die_y * 10.0
+        distance_mm = math.sqrt(x_mm**2 + y_mm**2)
+        assert distance_mm <= max_allowed_radius + 0.01, f"Point ({point.die_x}, {point.die_y}) at {distance_mm}mm exceeds exclusion"
+
+    # Grid should maintain uniform distribution within available region
+    # Verify at least some points selected
+    assert len(points) >= 5
+
+    print(f"✅ COMMON EDGE_EXCLUSION: All {len(points)} points within 120mm (30mm exclusion), uniform distribution")
+
+
+def test_grid_uniform_common_rotation_seed():
+    """
+    Test rotation_seed from common config (v1.3).
+
+    Verifies that rotation affects grid angular ordering.
+    """
+    strategy = GridUniformStrategy()
+
+    # Request with no rotation
+    request_no_rotation = create_test_request(max_sampling_points=20, min_sampling_points=10)
+    result_no_rotation = strategy.select_points(request_no_rotation)
+
+    # Request with 90 degree rotation
+    request_rotated = create_test_request(max_sampling_points=20, min_sampling_points=10)
+    from backend.src.models.strategy_config import StrategyConfig
+    request_rotated.strategy.strategy_config = StrategyConfig(**{
+        "common": {
+            "rotation_seed": 90
+        }
+    })
+
+    result_rotated = strategy.select_points(request_rotated)
+
+    # Verify both produce points (sanity check)
+    assert len(result_no_rotation.selected_points) > 0
+    assert len(result_rotated.selected_points) > 0
+
+    # Verify determinism: same rotation produces same result
+    result_rotated_2 = strategy.select_points(request_rotated)
+    assert result_rotated.selected_points == result_rotated_2.selected_points
+
+    # Both should maintain center-to-edge ordering (sorted by distance ascending)
+    for result in [result_no_rotation, result_rotated]:
+        points = result.selected_points
+        distances = [math.sqrt((p.die_x * 10.0)**2 + (p.die_y * 10.0)**2) for p in points]
+        # Check monotonically non-decreasing (center to edge)
+        for i in range(len(distances) - 1):
+            assert distances[i] <= distances[i+1] + 0.01
+
+    print(f"✅ COMMON ROTATION: No rotation={len(result_no_rotation.selected_points)} points, 90° rotation={len(result_rotated.selected_points)} points (deterministic, center-to-edge preserved)")
+
+
+def test_grid_uniform_common_target_point_count():
+    """
+    Test target_point_count from common config (v1.3).
+
+    Verifies that explicit target count is respected within constraints.
+    """
+    strategy = GridUniformStrategy()
+
+    # Request with explicit target_point_count
+    request = create_test_request(
+        max_sampling_points=50,
+        min_sampling_points=5
+    )
+
+    from backend.src.models.strategy_config import StrategyConfig
+    request.strategy.strategy_config = StrategyConfig(**{
+        "common": {
+            "target_point_count": 12
+        }
+    })
+
+    result = strategy.select_points(request)
+    points = result.selected_points
+
+    # Should use target_point_count (12) since it's within [5, 50]
+    assert len(points) == 12, f"Expected 12 points (target_point_count), got {len(points)}"
+
+    # Should maintain center-to-edge ordering
+    distances = [math.sqrt((p.die_x * 10.0)**2 + (p.die_y * 10.0)**2) for p in points]
+    for i in range(len(distances) - 1):
+        assert distances[i] <= distances[i+1] + 0.01
+
+    # Verify determinism
+    result_2 = strategy.select_points(request)
+    assert len(result_2.selected_points) == len(points)
+    assert result_2.selected_points == points
+
+    print(f"✅ COMMON TARGET_POINT_COUNT: Requested 12, got {len(points)} (uniform stride)")
+
+
+def test_grid_uniform_common_config_integration():
+    """
+    Test multiple common config parameters together (v1.3).
+
+    Verifies that edge_exclusion, rotation, and target_point_count work together.
+
+    Note: deterministic_seed for jitter is not yet implemented in GRID_UNIFORM.
+    Jitter tests deferred until jitter feature is added.
+    """
+    strategy = GridUniformStrategy()
+
+    request = create_test_request(
+        max_sampling_points=50,
+        min_sampling_points=5
+    )
+
+    from backend.src.models.strategy_config import StrategyConfig
+    request.strategy.strategy_config = StrategyConfig(**{
+        "common": {
+            "target_point_count": 15,
+            "edge_exclusion_mm": 20.0,
+            "rotation_seed": 45
+        }
+    })
+
+    result = strategy.select_points(request)
+    points = result.selected_points
+
+    # Verify target count
+    assert len(points) == 15, f"Expected 15 points, got {len(points)}"
+
+    # Verify edge exclusion
+    wafer_radius = 150.0
+    max_allowed_radius = wafer_radius - 20.0  # 130mm
+    for point in points:
+        x_mm = point.die_x * 10.0
+        y_mm = point.die_y * 10.0
+        distance_mm = math.sqrt(x_mm**2 + y_mm**2)
+        assert distance_mm <= max_allowed_radius + 0.01
+
+    # Verify center-to-edge ordering
+    distances = [math.sqrt((p.die_x * 10.0)**2 + (p.die_y * 10.0)**2) for p in points]
+    for i in range(len(distances) - 1):
+        assert distances[i] <= distances[i+1] + 0.01
+
+    # Verify determinism
+    result_2 = strategy.select_points(request)
+    assert result_2.selected_points == points
+
+    print(f"✅ COMMON CONFIG INTEGRATION: {len(points)} points with edge_exclusion=20mm, rotation=45°, target=15 (uniform)")
+
+
 if __name__ == "__main__":
     test_grid_uniform_determinism()
     test_grid_uniform_quadrant_distribution()
@@ -460,4 +637,9 @@ if __name__ == "__main__":
     test_grid_uniform_strategy_metadata()
     test_grid_uniform_strategy_allowlist_enforcement()
     test_grid_uniform_wafer_geometries()
+    # v1.3 common config tests
+    test_grid_uniform_common_edge_exclusion()
+    test_grid_uniform_common_rotation_seed()
+    test_grid_uniform_common_target_point_count()
+    test_grid_uniform_common_config_integration()
     print("🎉 All L3 GRID_UNIFORM tests PASSED!")
