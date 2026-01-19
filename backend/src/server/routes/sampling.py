@@ -7,7 +7,7 @@ from ...models.sampling import (
     SamplingScoreResponse,
 )
 from ...models.errors import SamplingError, ErrorResponse, ValidationError, ErrorCode
-from ..utils import get_deterministic_timestamp
+from ..utils import get_deterministic_timestamp, validate_strategy_config_at_boundary
 from ...engines.l3 import get_strategy  # PR-B: Use registry dispatch
 from ...engines.l4 import SamplingScorer
 
@@ -37,6 +37,13 @@ async def preview_sampling(request: SamplingPreviewRequest):
     try:
         # PR-A: Route-level strategy allowlist enforcement
         validate_strategy_allowed(request)
+
+        # Phase 6: Route-level strategy config validation (type-safe advanced config + business rules)
+        validate_strategy_config_at_boundary(
+            request.strategy.strategy_id,
+            request.strategy.strategy_config,
+            request.wafer_map_spec.wafer_size_mm
+        )
 
         # PR-B: Get strategy from registry by ID (no hardcoded strategy)
         strategy = get_strategy(request.strategy.strategy_id)
