@@ -10,7 +10,7 @@ from ..base import SamplingStrategy
 from ....models.base import DiePoint
 from ....models.sampling import SamplingOutput, SamplingTrace, SamplingPreviewRequest
 from ....models.errors import ValidationError, ConstraintError, ErrorCode
-from ....models.strategy_config import CommonStrategyConfig
+from ....models.strategy_config import CommonStrategyConfig, resolve_target_point_count
 from ....server.utils import get_deterministic_timestamp
 from ..common import apply_edge_exclusion, get_rotation_offset, apply_rotation_to_angle
 
@@ -82,18 +82,14 @@ class GridUniformStrategy(SamplingStrategy):
                 common_config.edge_exclusion_mm
             )
 
-        # Calculate target count (v1.3: use common config if provided)
-        if common_config.target_point_count is not None:
-            target_count = min(
-                common_config.target_point_count,
-                request.process_context.max_sampling_points,
-                request.tool_profile.max_points_per_wafer
-            )
-        else:
-            target_count = min(
-                request.process_context.max_sampling_points,
-                request.tool_profile.max_points_per_wafer
-            )
+        # Calculate target count using centralized default resolution (v1.3)
+        target_count = resolve_target_point_count(
+            requested=common_config.target_point_count,
+            strategy_id=self.get_strategy_id(),
+            min_sampling_points=request.process_context.min_sampling_points,
+            max_sampling_points=request.process_context.max_sampling_points,
+            tool_max=request.tool_profile.max_points_per_wafer
+        )
 
         # Select with stride-based sampling
         stride_selected = self._select_with_stride(valid_candidates, target_count)
