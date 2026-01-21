@@ -88,6 +88,7 @@ type Action =
   | { type: 'SET_PROCESS_CONTEXT'; payload: { inputs: WizardState['inputs']['processContext']; derived: ProcessContext } }
   | { type: 'SET_TOOL_PROFILE'; payload: { inputs: WizardState['inputs']['tool']; derived: ToolProfile } }
   | { type: 'SET_STRATEGY'; payload: string }
+  | { type: 'SET_STRATEGY_PARAMS'; payload: Record<string, any> }
   | { type: 'SET_PREVIEW_OUTPUT'; payload: { samplingOutput: SamplingOutput; warnings: Warning[] } }
   | { type: 'SET_SCORE_REPORT'; payload: SamplingScoreReport }
   | { type: 'SET_RECIPE_OUTPUT'; payload: ToolRecipe } // Added for M6
@@ -141,7 +142,27 @@ const wizardReducer = (state: WizardState, action: Action): WizardState => {
         },
       };
     case 'SET_STRATEGY':
-      return { ...state, inputs: { ...state.inputs, strategy: { strategyId: action.payload } } };
+      return { 
+        ...state, 
+        inputs: { 
+          ...state.inputs, 
+          strategy: { 
+            strategyId: action.payload,
+            params: {} // Reset params on strategy change
+          } 
+        } 
+      };
+    case 'SET_STRATEGY_PARAMS':
+      return {
+        ...state,
+        inputs: {
+          ...state.inputs,
+          strategy: {
+            ...state.inputs.strategy,
+            params: { ...state.inputs.strategy.params, ...action.payload }
+          }
+        }
+      };
     case 'SET_PREVIEW_OUTPUT':
       return {
         ...state,

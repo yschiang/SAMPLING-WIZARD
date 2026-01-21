@@ -1,22 +1,54 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Check, Play, BarChart2, Info } from 'lucide-react';
+import { Loader2, Check, Play, BarChart2, Info, Sliders, AlertCircle } from 'lucide-react';
 import { WizardContext } from '../../context/WizardContext';
 import { previewSampling, scoreSampling } from '../../api/catalog';
 import { Button } from '../../ui/Button';
+import { Input } from '../../ui/Input';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/Card';
 import { StrategyPreview } from '../../components/StrategyPreview';
+
+const strategyDescriptions: Record<string, string> = {
+  'CENTER_EDGE': 'Balances center process control with edge exclusion monitoring. Ideal for standard lithography checks.',
+  'GRID_UNIFORM': 'Uniform grid distribution for baseline process characterization and full-wafer uniformity mapping.',
+  'EDGE_ONLY': 'Concentrated sampling on the wafer perimeter. Critical for detecting clamp, bevel, and handling defects.',
+  'ZONE_RING_N': 'Concentric multi-zone sampling. Best for processes with radial variation signatures like CVD or CMP.',
+};
 
 const SelectSamplingStrategy = () => {
   const { state, dispatch } = useContext(WizardContext);
   const navigate = useNavigate();
 
-  const handleSelectStrategy = (strategyId: string) => {
-    dispatch({ type: 'SET_STRATEGY', payload: strategyId });
+  const { strategyId, params } = state.inputs.strategy;
+
+  // Set default params on selection if empty
+  useEffect(() => {
+    if (strategyId && (!params || Object.keys(params).length === 0)) {
+      dispatch({
+        type: 'SET_STRATEGY_PARAMS',
+        payload: {
+          edge_exclusion_mm: 5,
+          target_point_count: 100,
+          rotation_seed: 0
+        }
+      });
+    }
+  }, [strategyId, params, dispatch]);
+
+  const handleSelectStrategy = (id: string) => {
+    dispatch({ type: 'SET_STRATEGY', payload: id });
+  };
+
+  const handleParamChange = (key: string, value: string) => {
+    const numValue = parseFloat(value);
+    dispatch({
+      type: 'SET_STRATEGY_PARAMS',
+      payload: { [key]: isNaN(numValue) ? 0 : numValue }
+    });
   };
 
   const handlePreviewAndScore = async () => {
     const { waferMapSpec, processContext, toolProfile } = state.derived;
-    const { strategyId } = state.inputs.strategy;
 
     if (!waferMapSpec || !processContext || !toolProfile || !strategyId) {
       dispatch({
@@ -29,17 +61,25 @@ const SelectSamplingStrategy = () => {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
+      // Pass params to previewSampling
       const previewResponse = await previewSampling({
         wafer_map_spec: waferMapSpec,
         process_context: processContext,
         tool_profile: toolProfile,
-        strategy: { strategy_id: strategyId },
+        strategy: { 
+          strategy_id: strategyId,
+          params: params || {} 
+        },
       });
+      
       dispatch({ type: 'SET_PREVIEW_OUTPUT', payload: { 
         samplingOutput: previewResponse.sampling_output, 
         warnings: previewResponse.warnings 
       } });
 
+      // Pass same params to scoreSampling if needed, or assume score uses output
+      // SamplingScoreRequest takes sampling_output, so it doesn't strictly need strategy params again
+      // unless backend needs to re-run logic. But score uses existing output.
       const scoreResponse = await scoreSampling({
         wafer_map_spec: waferMapSpec,
         process_context: processContext,
@@ -50,6 +90,7 @@ const SelectSamplingStrategy = () => {
 
       navigate('/wizard/preview-sampling-and-scoring');
     } catch (err: any) {
+      // Handle 422 Validation Errors specifically if possible, else generic
       dispatch({ type: 'SET_ERROR', payload: err.message });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -82,7 +123,7 @@ const SelectSamplingStrategy = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {allowedStrategies.map((strategy) => {
-          const isSelected = state.inputs.strategy.strategyId === strategy;
+          const isSelected = strategyId === strategy;
           return (
             <button
               key={strategy}
@@ -117,7 +158,7 @@ const SelectSamplingStrategy = () => {
                     {strategy.replace(/_/g, ' ')}
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
-                    System algorithm for process-specific coordinate generation.
+                    {strategyDescriptions[strategy] || 'Advanced sampling algorithm.'}
                   </p>
                 </div>
               </div>
@@ -126,12 +167,72 @@ const SelectSamplingStrategy = () => {
         })}
       </div>
 
+      {/* Configuration Panel */}
+      {strategyId && (
+        <Card className="card-elevated animate-fade-in border-l-4 border-l-primary">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Sliders className="h-4 w-4 text-primary" />
+              Strategy Configuration
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Target Point Count</label>
+                <Input 
+                  type="number" 
+                  min="1" 
+                  max="1000"
+                  value={params?.target_point_count ?? 100}
+                  onChange={(e) => handleParamChange('target_point_count', e.target.value)}
+                  className="font-mono"
+                />
+                <p className="text-[10px] text-muted-foreground">Total sampling points (approximate)</p>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Edge Exclusion (mm)</label>
+                <Input 
+                  type="number" 
+                  min="0" 
+                  max="500"
+                  value={params?.edge_exclusion_mm ?? 5}
+                  onChange={(e) => handleParamChange('edge_exclusion_mm', e.target.value)}
+                  className="font-mono"
+                />
+                <p className="text-[10px] text-muted-foreground">Margin from wafer edge</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Rotation Seed</label>
+                <Input 
+                  type="number" 
+                  value={params?.rotation_seed ?? 0}
+                  onChange={(e) => handleParamChange('rotation_seed', e.target.value)}
+                  className="font-mono"
+                />
+                <p className="text-[10px] text-muted-foreground">Randomization seed for reproducibility</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Error Display */}
+      {state.error && (
+        <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 flex items-center gap-3 animate-fade-in">
+          <AlertCircle className="h-5 w-5 text-destructive" />
+          <p className="text-sm font-medium text-destructive">{state.error}</p>
+        </div>
+      )}
+
       {/* CTA Section */}
-      <div className="flex flex-col items-center pt-12 space-y-4 border-t border-border/40">
+      <div className="flex flex-col items-center pt-8 space-y-4 border-t border-border/40">
         <Button
           size="lg"
           onClick={handlePreviewAndScore}
-          disabled={state.isLoading || !state.inputs.strategy.strategyId}
+          disabled={state.isLoading || !strategyId}
           className="w-full max-w-sm h-14 text-base font-semibold shadow-xl transition-all active:scale-[0.98] bg-primary hover:bg-primary/90"
         >
           {state.isLoading ? (
