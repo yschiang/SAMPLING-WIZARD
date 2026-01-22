@@ -19,11 +19,12 @@ const SelectSamplingStrategy = () => {
   const { state, dispatch } = useContext(WizardContext);
   const navigate = useNavigate();
 
-  const { strategyId, params } = state.inputs.strategy;
+  const { strategyId, strategy_config } = state.inputs.strategy;
+  const commonParams = strategy_config?.common;
 
-  // Set default params on selection if empty
+  // Ensure default params are set on selection (handled by reducer now, but safety check)
   useEffect(() => {
-    if (strategyId && (!params || Object.keys(params).length === 0)) {
+    if (strategyId && !commonParams) {
       dispatch({
         type: 'SET_STRATEGY_PARAMS',
         payload: {
@@ -33,7 +34,7 @@ const SelectSamplingStrategy = () => {
         }
       });
     }
-  }, [strategyId, params, dispatch]);
+  }, [strategyId, commonParams, dispatch]);
 
   const handleSelectStrategy = (id: string) => {
     dispatch({ type: 'SET_STRATEGY', payload: id });
@@ -61,14 +62,14 @@ const SelectSamplingStrategy = () => {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
-      // Pass params to previewSampling
+      // v1.3 API: Pass strategy_config instead of params
       const previewResponse = await previewSampling({
         wafer_map_spec: waferMapSpec,
         process_context: processContext,
         tool_profile: toolProfile,
         strategy: { 
           strategy_id: strategyId,
-          params: params || {} 
+          strategy_config: strategy_config
         },
       });
       
@@ -77,9 +78,6 @@ const SelectSamplingStrategy = () => {
         warnings: previewResponse.warnings 
       } });
 
-      // Pass same params to scoreSampling if needed, or assume score uses output
-      // SamplingScoreRequest takes sampling_output, so it doesn't strictly need strategy params again
-      // unless backend needs to re-run logic. But score uses existing output.
       const scoreResponse = await scoreSampling({
         wafer_map_spec: waferMapSpec,
         process_context: processContext,
@@ -90,7 +88,6 @@ const SelectSamplingStrategy = () => {
 
       navigate('/wizard/preview-sampling-and-scoring');
     } catch (err: any) {
-      // Handle 422 Validation Errors specifically if possible, else generic
       dispatch({ type: 'SET_ERROR', payload: err.message });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -184,7 +181,7 @@ const SelectSamplingStrategy = () => {
                   type="number" 
                   min="1" 
                   max="1000"
-                  value={params?.target_point_count ?? 100}
+                  value={commonParams?.target_point_count ?? 100}
                   onChange={(e) => handleParamChange('target_point_count', e.target.value)}
                   className="font-mono"
                 />
@@ -197,7 +194,7 @@ const SelectSamplingStrategy = () => {
                   type="number" 
                   min="0" 
                   max="500"
-                  value={params?.edge_exclusion_mm ?? 5}
+                  value={commonParams?.edge_exclusion_mm ?? 5}
                   onChange={(e) => handleParamChange('edge_exclusion_mm', e.target.value)}
                   className="font-mono"
                 />
@@ -208,7 +205,7 @@ const SelectSamplingStrategy = () => {
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Rotation Seed</label>
                 <Input 
                   type="number" 
-                  value={params?.rotation_seed ?? 0}
+                  value={commonParams?.rotation_seed ?? 0}
                   onChange={(e) => handleParamChange('rotation_seed', e.target.value)}
                   className="font-mono"
                 />

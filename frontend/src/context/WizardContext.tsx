@@ -28,7 +28,14 @@ export interface WizardState {
     };
     strategy: {
       strategyId: string | null;
-      params?: Record<string, any>;
+      strategy_config?: {
+        common?: {
+          edge_exclusion_mm?: number;
+          target_point_count?: number;
+          rotation_seed?: number;
+        };
+        specific?: Record<string, any>;
+      };
     };
   };
   derived: {
@@ -40,7 +47,7 @@ export interface WizardState {
     samplingOutput: SamplingOutput | null;
     previewWarnings: Warning[];
     scoreReport: SamplingScoreReport | null;
-    toolRecipe: ToolRecipe | null; // Added for M6
+    toolRecipe: ToolRecipe | null;
   };
   isLoading: boolean;
   error: string | null;
@@ -62,6 +69,13 @@ export const initialState: WizardState = {
     },
     strategy: {
       strategyId: null,
+      strategy_config: {
+        common: {
+          edge_exclusion_mm: 5,
+          target_point_count: 100,
+          rotation_seed: 0
+        }
+      }
     },
   },
   derived: {
@@ -73,7 +87,7 @@ export const initialState: WizardState = {
     samplingOutput: null,
     previewWarnings: [],
     scoreReport: null,
-    toolRecipe: null, // Added for M6
+    toolRecipe: null,
   },
   isLoading: false,
   error: null,
@@ -91,7 +105,7 @@ type Action =
   | { type: 'SET_STRATEGY_PARAMS'; payload: Record<string, any> }
   | { type: 'SET_PREVIEW_OUTPUT'; payload: { samplingOutput: SamplingOutput; warnings: Warning[] } }
   | { type: 'SET_SCORE_REPORT'; payload: SamplingScoreReport }
-  | { type: 'SET_RECIPE_OUTPUT'; payload: ToolRecipe } // Added for M6
+  | { type: 'SET_RECIPE_OUTPUT'; payload: ToolRecipe }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null };
 
@@ -148,7 +162,13 @@ const wizardReducer = (state: WizardState, action: Action): WizardState => {
           ...state.inputs, 
           strategy: { 
             strategyId: action.payload,
-            params: {} // Reset params on strategy change
+            strategy_config: {
+              common: {
+                edge_exclusion_mm: 5,
+                target_point_count: 100,
+                rotation_seed: 0
+              }
+            }
           } 
         } 
       };
@@ -159,7 +179,13 @@ const wizardReducer = (state: WizardState, action: Action): WizardState => {
           ...state.inputs,
           strategy: {
             ...state.inputs.strategy,
-            params: { ...state.inputs.strategy.params, ...action.payload }
+            strategy_config: {
+              ...state.inputs.strategy.strategy_config,
+              common: { 
+                ...state.inputs.strategy.strategy_config?.common, 
+                ...action.payload 
+              }
+            }
           }
         }
       };
@@ -170,8 +196,8 @@ const wizardReducer = (state: WizardState, action: Action): WizardState => {
           ...state.outputs,
           samplingOutput: action.payload.samplingOutput,
           previewWarnings: action.payload.warnings,
-          scoreReport: null, // Reset score when preview is re-run
-          toolRecipe: null, // Reset recipe when preview is re-run (M6 addition)
+          scoreReport: null,
+          toolRecipe: null,
         },
       };
     case 'SET_SCORE_REPORT':
@@ -180,10 +206,10 @@ const wizardReducer = (state: WizardState, action: Action): WizardState => {
         outputs: {
           ...state.outputs,
           scoreReport: action.payload,
-          toolRecipe: null, // Reset recipe when score is re-run (M6 addition)
+          toolRecipe: null,
         },
       };
-    case 'SET_RECIPE_OUTPUT': // Added for M6
+    case 'SET_RECIPE_OUTPUT':
       return {
         ...state,
         outputs: {
@@ -219,4 +245,3 @@ export const WizardProvider = ({ children }: { children: ReactNode }) => {
     </WizardContext.Provider>
   );
 };
-
