@@ -122,7 +122,7 @@ export interface SamplingPreviewRequest {
         target_point_count?: number;
         rotation_seed?: number;
       };
-      specific?: Record<string, any>;
+      advanced?: Record<string, any>;
     };
   };
 }

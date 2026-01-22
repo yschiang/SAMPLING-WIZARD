@@ -34,7 +34,7 @@ export interface WizardState {
           target_point_count?: number;
           rotation_seed?: number;
         };
-        specific?: Record<string, any>;
+        advanced?: Record<string, any>;
       };
     };
   };
