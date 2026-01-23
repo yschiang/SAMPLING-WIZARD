@@ -5,12 +5,14 @@ Parameterized zone-based sampling with N concentric rings.
 """
 
 import math
-from typing import List, Dict
+from typing import List, Dict, Optional
 from ..base import SamplingStrategy
 from ....models.base import DiePoint
 from ....models.sampling import SamplingOutput, SamplingTrace, SamplingPreviewRequest
 from ....models.errors import ValidationError, ConstraintError, ErrorCode
+from ....models.strategy_config import CommonStrategyConfig, resolve_target_point_count
 from ....server.utils import get_deterministic_timestamp
+from ..common import apply_edge_exclusion, get_rotation_offset, apply_rotation_to_angle
 
 
 class ZoneRingNStrategy(SamplingStrategy):
@@ -68,6 +70,9 @@ class ZoneRingNStrategy(SamplingStrategy):
         # Validate input parameters
         self._validate_request_parameters(request)
 
+        # Get common config (v1.3)
+        common_config = self._get_common_config(request)
+
         # Get num_rings from strategy params (default 3)
         num_rings = self._get_num_rings(request)
 
@@ -77,6 +82,14 @@ class ZoneRingNStrategy(SamplingStrategy):
         # Apply wafer map valid die mask filtering
         valid_candidates = self._apply_die_mask(candidates, request.wafer_map_spec)
 
+        # Apply additional edge exclusion from common config (v1.3)
+        if common_config.edge_exclusion_mm > 0:
+            valid_candidates = apply_edge_exclusion(
+                valid_candidates,
+                request.wafer_map_spec,
+                common_config.edge_exclusion_mm
+            )
+
         # Classify dies into rings
         rings = self._classify_into_rings(
             valid_candidates,
@@ -84,18 +97,25 @@ class ZoneRingNStrategy(SamplingStrategy):
             request.wafer_map_spec
         )
 
-        # Calculate target count
-        target_count = min(
-            request.process_context.max_sampling_points,
-            request.tool_profile.max_points_per_wafer
+        # Calculate target count using centralized default resolution (v1.3)
+        target_count = resolve_target_point_count(
+            requested=common_config.target_point_count,
+            strategy_id=self.get_strategy_id(),
+            min_sampling_points=request.process_context.min_sampling_points,
+            max_sampling_points=request.process_context.max_sampling_points,
+            tool_max=request.tool_profile.max_points_per_wafer
         )
+
+        # Get rotation offset from common config (v1.3)
+        rotation_offset = get_rotation_offset(common_config.rotation_seed)
 
         # Allocate points per ring and select
         selected_points = self._allocate_and_select(
             rings,
             num_rings,
             target_count,
-            request.wafer_map_spec
+            request.wafer_map_spec,
+            rotation_offset
         )
 
         # Apply sampling constraints with error handling
@@ -119,7 +139,7 @@ class ZoneRingNStrategy(SamplingStrategy):
 
     def _get_num_rings(self, request: SamplingPreviewRequest) -> int:
         """
-        Get number of rings from strategy params or use default.
+        Get number of rings from strategy config (v1.3) or use default.
 
         Args:
             request: Sampling preview request
@@ -127,8 +147,11 @@ class ZoneRingNStrategy(SamplingStrategy):
         Returns:
             Number of rings (default 3)
         """
-        if request.strategy.params and 'num_rings' in request.strategy.params:
-            num_rings = request.strategy.params['num_rings']
+        # v1.3: Access via strategy_config.advanced
+        if (request.strategy.strategy_config and
+            request.strategy.strategy_config.advanced and
+            'num_rings' in request.strategy.strategy_config.advanced):
+            num_rings = request.strategy.strategy_config.advanced['num_rings']
 
             # Validate num_rings
             if not isinstance(num_rings, int) or num_rings < 1:
@@ -145,6 +168,18 @@ class ZoneRingNStrategy(SamplingStrategy):
             return num_rings
 
         return self.DEFAULT_NUM_RINGS
+
+    def _get_common_config(self, request: SamplingPreviewRequest) -> CommonStrategyConfig:
+        """
+        Extract common configuration from strategy_config (v1.3).
+
+        Returns:
+            CommonStrategyConfig with defaults for unspecified fields
+        """
+        if request.strategy.strategy_config and request.strategy.strategy_config.common:
+            return request.strategy.strategy_config.common
+        # Return default CommonStrategyConfig if not provided
+        return CommonStrategyConfig()
 
     def _generate_candidates(self, wafer_spec) -> List[DiePoint]:
         """
@@ -219,7 +254,7 @@ class ZoneRingNStrategy(SamplingStrategy):
 
     def _allocate_and_select(self, rings: Dict[int, List[DiePoint]],
                             num_rings: int, target_count: int,
-                            wafer_spec) -> List[DiePoint]:
+                            wafer_spec, rotation_offset: float = 0.0) -> List[DiePoint]:
         """
         Allocate points per ring proportional to area and select.
 
@@ -228,6 +263,7 @@ class ZoneRingNStrategy(SamplingStrategy):
             num_rings: Total number of rings
             target_count: Total number of points to select
             wafer_spec: Wafer specification
+            rotation_offset: Rotation angle in degrees (v1.3)
 
         Returns:
             List of selected points across all rings
@@ -278,11 +314,12 @@ class ZoneRingNStrategy(SamplingStrategy):
             if not ring_dies or ring_target == 0:
                 continue
 
-            # Sort dies within ring using canonical ordering
+            # Sort dies within ring using canonical ordering (v1.3: with rotation)
             sorted_ring_dies = self._sort_canonical(
                 ring_dies,
                 wafer_spec.die_pitch_x_mm,
-                wafer_spec.die_pitch_y_mm
+                wafer_spec.die_pitch_y_mm,
+                rotation_offset
             )
 
             # Select with stride
@@ -292,21 +329,34 @@ class ZoneRingNStrategy(SamplingStrategy):
         return selected_points
 
     def _sort_canonical(self, candidates: List[DiePoint],
-                       pitch_x: float, pitch_y: float) -> List[DiePoint]:
+                       pitch_x: float, pitch_y: float, rotation_offset: float = 0.0) -> List[DiePoint]:
         """
         Sort candidates using canonical ordering.
 
         Canonical ordering:
         1. Distance from center (ascending)
-        2. Angle (atan2) ascending
+        2. Angle (atan2) ascending, with rotation applied (v1.3)
         3. (die_x, die_y) ascending
+
+        Args:
+            candidates: List of candidate points
+            pitch_x: Die pitch in X direction (mm)
+            pitch_y: Die pitch in Y direction (mm)
+            rotation_offset: Rotation angle in degrees (v1.3)
         """
         def canonical_key(p: DiePoint) -> tuple:
             x_mm = p.die_x * pitch_x
             y_mm = p.die_y * pitch_y
             distance = math.sqrt(x_mm**2 + y_mm**2)
-            angle = math.atan2(y_mm, x_mm)
-            return (distance, angle, p.die_x, p.die_y)
+            # Calculate base angle in degrees
+            angle_rad = math.atan2(y_mm, x_mm)
+            angle_deg = math.degrees(angle_rad)
+            # Normalize to [0, 360)
+            if angle_deg < 0:
+                angle_deg += 360.0
+            # Apply rotation (v1.3)
+            rotated_angle = apply_rotation_to_angle(angle_deg, rotation_offset)
+            return (distance, rotated_angle, p.die_x, p.die_y)
 
         return sorted(candidates, key=canonical_key)
 

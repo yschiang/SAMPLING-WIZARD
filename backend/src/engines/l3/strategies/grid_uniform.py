@@ -5,12 +5,14 @@ Deterministic uniform grid sampling with even spatial distribution.
 """
 
 import math
-from typing import List
+from typing import List, Optional
 from ..base import SamplingStrategy
 from ....models.base import DiePoint
 from ....models.sampling import SamplingOutput, SamplingTrace, SamplingPreviewRequest
 from ....models.errors import ValidationError, ConstraintError, ErrorCode
+from ....models.strategy_config import CommonStrategyConfig, resolve_target_point_count
 from ....server.utils import get_deterministic_timestamp
+from ..common import apply_edge_exclusion, get_rotation_offset, apply_rotation_to_angle
 
 
 class GridUniformStrategy(SamplingStrategy):
@@ -52,23 +54,41 @@ class GridUniformStrategy(SamplingStrategy):
         # Validate input parameters
         self._validate_request_parameters(request)
 
+        # Get common config (v1.3)
+        common_config = self._get_common_config(request)
+
+        # Get rotation offset (v1.3)
+        rotation_offset = get_rotation_offset(common_config.rotation_seed)
+
         # Generate candidate points
         candidates = self._generate_candidates(request.wafer_map_spec)
 
-        # Sort using canonical ordering
+        # Sort using canonical ordering (v1.3: with rotation)
         sorted_candidates = self._sort_canonical(
             candidates,
             request.wafer_map_spec.die_pitch_x_mm,
-            request.wafer_map_spec.die_pitch_y_mm
+            request.wafer_map_spec.die_pitch_y_mm,
+            rotation_offset
         )
 
         # Apply wafer map valid die mask filtering
         valid_candidates = self._apply_die_mask(sorted_candidates, request.wafer_map_spec)
 
-        # Calculate target count
-        target_count = min(
-            request.process_context.max_sampling_points,
-            request.tool_profile.max_points_per_wafer
+        # Apply additional edge exclusion from common config (v1.3)
+        if common_config.edge_exclusion_mm > 0:
+            valid_candidates = apply_edge_exclusion(
+                valid_candidates,
+                request.wafer_map_spec,
+                common_config.edge_exclusion_mm
+            )
+
+        # Calculate target count using centralized default resolution (v1.3)
+        target_count = resolve_target_point_count(
+            requested=common_config.target_point_count,
+            strategy_id=self.get_strategy_id(),
+            min_sampling_points=request.process_context.min_sampling_points,
+            max_sampling_points=request.process_context.max_sampling_points,
+            tool_max=request.tool_profile.max_points_per_wafer
         )
 
         # Select with stride-based sampling
@@ -92,6 +112,18 @@ class GridUniformStrategy(SamplingStrategy):
             selected_points=selected_points,
             trace=trace
         )
+
+    def _get_common_config(self, request: SamplingPreviewRequest) -> CommonStrategyConfig:
+        """
+        Extract common configuration from strategy_config (v1.3).
+
+        Returns:
+            CommonStrategyConfig with defaults for unspecified fields
+        """
+        if request.strategy.strategy_config and request.strategy.strategy_config.common:
+            return request.strategy.strategy_config.common
+        # Return default CommonStrategyConfig if not provided
+        return CommonStrategyConfig()
 
     def _generate_candidates(self, wafer_spec) -> List[DiePoint]:
         """
@@ -126,23 +158,36 @@ class GridUniformStrategy(SamplingStrategy):
         return candidates
 
     def _sort_canonical(self, candidates: List[DiePoint],
-                       pitch_x: float, pitch_y: float) -> List[DiePoint]:
+                       pitch_x: float, pitch_y: float, rotation_offset: float = 0.0) -> List[DiePoint]:
         """
         Sort candidates using canonical ordering for uniform distribution.
 
         Canonical ordering:
         1. Distance from center (ascending - center to edge)
-        2. Angle (atan2) ascending
+        2. Angle (atan2) ascending, with rotation applied (v1.3)
         3. (die_x, die_y) ascending for tie-breaking
 
         This ensures deterministic and spatially distributed selection.
+
+        Args:
+            candidates: List of candidate points
+            pitch_x: Die pitch in X direction (mm)
+            pitch_y: Die pitch in Y direction (mm)
+            rotation_offset: Rotation angle in degrees (v1.3)
         """
         def canonical_key(p: DiePoint) -> tuple:
             x_mm = p.die_x * pitch_x
             y_mm = p.die_y * pitch_y
             distance = math.sqrt(x_mm**2 + y_mm**2)
-            angle = math.atan2(y_mm, x_mm)
-            return (distance, angle, p.die_x, p.die_y)
+            # Calculate base angle in degrees
+            angle_rad = math.atan2(y_mm, x_mm)
+            angle_deg = math.degrees(angle_rad)
+            # Normalize to [0, 360)
+            if angle_deg < 0:
+                angle_deg += 360.0
+            # Apply rotation offset (v1.3)
+            rotated_angle = apply_rotation_to_angle(angle_deg, rotation_offset)
+            return (distance, rotated_angle, p.die_x, p.die_y)
 
         return sorted(candidates, key=canonical_key)
 

@@ -116,7 +116,14 @@ export interface SamplingPreviewRequest {
   tool_profile: ToolProfile;
   strategy: {
     strategy_id: string;
-    params?: Record<string, any>;
+    strategy_config?: {
+      common?: {
+        edge_exclusion_mm?: number;
+        target_point_count?: number;
+        rotation_seed?: number;
+      };
+      advanced?: Record<string, any>;
+    };
   };
 }
 

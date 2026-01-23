@@ -37,7 +37,157 @@
       "version": "1.0"
     },
     "strategy": {
-      "strategy_id": "CENTER_EDGE"
+      "strategy_id": "CENTER_EDGE",
+      "strategy_config": null
+    }
+  },
+  "preview_request_with_common_config": {
+    "wafer_map_spec": {
+      "wafer_size_mm": 300.0,
+      "die_pitch_x_mm": 10.0,
+      "die_pitch_y_mm": 10.0,
+      "origin": "CENTER",
+      "notch_orientation_deg": 0.0,
+      "coordinate_system": "DIE_GRID",
+      "valid_die_mask": {
+        "type": "EDGE_EXCLUSION",
+        "radius_mm": 140.0
+      },
+      "version": "1.0"
+    },
+    "process_context": {
+      "process_step": "LITHO",
+      "measurement_intent": "UNIFORMITY",
+      "mode": "INLINE",
+      "criticality": "HIGH",
+      "min_sampling_points": 5,
+      "max_sampling_points": 25,
+      "allowed_strategy_set": ["CENTER_EDGE"],
+      "version": "1.0"
+    },
+    "tool_profile": {
+      "tool_type": "OPTICAL_METROLOGY",
+      "vendor": "ASML",
+      "coordinate_system_supported": ["DIE_GRID", "MM"],
+      "max_points_per_wafer": 49,
+      "edge_die_supported": true,
+      "ordering_required": false,
+      "recipe_format": {
+        "type": "JSON",
+        "version": "1.0"
+      },
+      "version": "1.0"
+    },
+    "strategy": {
+      "strategy_id": "CENTER_EDGE",
+      "strategy_config": {
+        "common": {
+          "target_point_count": 25,
+          "edge_exclusion_mm": 2.0
+        }
+      }
+    }
+  },
+  "preview_request_with_advanced_config": {
+    "wafer_map_spec": {
+      "wafer_size_mm": 300.0,
+      "die_pitch_x_mm": 10.0,
+      "die_pitch_y_mm": 10.0,
+      "origin": "CENTER",
+      "notch_orientation_deg": 0.0,
+      "coordinate_system": "DIE_GRID",
+      "valid_die_mask": {
+        "type": "EDGE_EXCLUSION",
+        "radius_mm": 140.0
+      },
+      "version": "1.0"
+    },
+    "process_context": {
+      "process_step": "LITHO",
+      "measurement_intent": "UNIFORMITY",
+      "mode": "INLINE",
+      "criticality": "HIGH",
+      "min_sampling_points": 5,
+      "max_sampling_points": 25,
+      "allowed_strategy_set": ["CENTER_EDGE"],
+      "version": "1.0"
+    },
+    "tool_profile": {
+      "tool_type": "OPTICAL_METROLOGY",
+      "vendor": "ASML",
+      "coordinate_system_supported": ["DIE_GRID", "MM"],
+      "max_points_per_wafer": 49,
+      "edge_die_supported": true,
+      "ordering_required": false,
+      "recipe_format": {
+        "type": "JSON",
+        "version": "1.0"
+      },
+      "version": "1.0"
+    },
+    "strategy": {
+      "strategy_id": "CENTER_EDGE",
+      "strategy_config": {
+        "advanced": {
+          "center_weight": 0.3,
+          "ring_count": 4,
+          "radial_spacing": "EXPONENTIAL"
+        }
+      }
+    }
+  },
+  "preview_request_with_full_config": {
+    "wafer_map_spec": {
+      "wafer_size_mm": 300.0,
+      "die_pitch_x_mm": 10.0,
+      "die_pitch_y_mm": 10.0,
+      "origin": "CENTER",
+      "notch_orientation_deg": 0.0,
+      "coordinate_system": "DIE_GRID",
+      "valid_die_mask": {
+        "type": "EDGE_EXCLUSION",
+        "radius_mm": 140.0
+      },
+      "version": "1.0"
+    },
+    "process_context": {
+      "process_step": "ETCH",
+      "measurement_intent": "CD_CONTROL",
+      "mode": "OFFLINE",
+      "criticality": "MEDIUM",
+      "min_sampling_points": 3,
+      "max_sampling_points": 50,
+      "allowed_strategy_set": ["GRID_UNIFORM"],
+      "version": "1.0"
+    },
+    "tool_profile": {
+      "tool_type": "SEM",
+      "vendor": "AMAT",
+      "coordinate_system_supported": ["DIE_GRID"],
+      "max_points_per_wafer": 25,
+      "edge_die_supported": false,
+      "ordering_required": false,
+      "recipe_format": {
+        "type": "JSON",
+        "version": "1.0"
+      },
+      "version": "1.0"
+    },
+    "strategy": {
+      "strategy_id": "GRID_UNIFORM",
+      "strategy_config": {
+        "common": {
+          "target_point_count": 30,
+          "edge_exclusion_mm": 5.0,
+          "rotation_seed": 45,
+          "deterministic_seed": 42
+        },
+        "advanced": {
+          "grid_pitch_mm": 15.0,
+          "jitter_ratio": 0.1,
+          "grid_alignment": "CORNER"
+        }
+      }
     }
   },
   "score_request_base": {
